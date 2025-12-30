@@ -33,7 +33,7 @@ export default function ClientLayout({
             </span>
           </div>
         </header>
-        <div className="flex-1 overflow-auto">{children}</div>
+        <div className="flex-1 overflow-auto scrollbar-hide">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )

@@ -12,88 +12,114 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Lock, Mail } from "lucide-react";
 import { loginAction } from "@/app/actions/auth";
+import { toast } from "react-hot-toast";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     setIsLoading(true);
 
     try {
       const data = await loginAction(email, password);
       if (data?.error) {
-        setError(data.error);
+        console.log(data.error);
+        toast.error("Usuario no encontrado");
       }
-    } catch (err: any) {
-      setError(err.message || "Error al iniciar sesión");
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Error al iniciar sesión");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Lock className="w-5 h-5" />
-          Iniciar Sesión
+    <Card className="border-0 bg-transparent shadow-none">
+      <CardHeader className="pb-4 text-center">
+        <CardTitle className="flex items-center justify-center gap-2 text-xl text-slate-900 dark:text-slate-100">
+          <Lock className="w-5 h-5 text-primary" />
+          Iniciar sesión
         </CardTitle>
-        <CardDescription>
-          Ingresa tus credenciales para acceder a todas las pruebas
+        <CardDescription className="text-sm text-muted-foreground">
+          Ingresa tus credenciales para continuar
         </CardDescription>
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Correo Electrónico</Label>
+        <form onSubmit={handleSubmit} className="space-y-5">
+
+          {/* EMAIL */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="email"
+              className="text-sm text-slate-700 dark:text-slate-300"
+            >
+              Correo electrónico
+            </Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 id="email"
                 type="email"
                 placeholder="tu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-10"
+                className="
+                  pl-10
+                  bg-white dark:bg-slate-900
+                  border-slate-200 dark:border-slate-700
+                  focus-visible:ring-2
+                  focus-visible:ring-primary/40
+                "
                 required
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Contraseña</Label>
+          {/* PASSWORD */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="password"
+              className="text-sm text-slate-700 dark:text-slate-300"
+            >
+              Contraseña
+            </Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 id="password"
                 type="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10"
+                className="
+                  pl-10
+                  bg-white dark:bg-slate-900
+                  border-slate-200 dark:border-slate-700
+                  focus-visible:ring-2
+                  focus-visible:ring-primary/40
+                "
                 required
               />
             </div>
           </div>
 
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+          {/* BOTÓN */}
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="
+              w-full h-11 text-base
+              bg-primary hover:bg-primary/90
+              text-white
+            "
+          >
+            {isLoading ? "Iniciando sesión…" : "Iniciar sesión"}
           </Button>
         </form>
       </CardContent>

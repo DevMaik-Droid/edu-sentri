@@ -1,49 +1,125 @@
 // app/page.tsx
-import { redirect } from "next/navigation"
+import { redirect } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, MessageCircle } from "lucide-react";
 
-import { GraduationCap, ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { LoginForm } from "@/components/login-form"
-import { createSupabaseServer } from "@/lib/supabase/server"
+import { Button } from "@/components/ui/button";
+import { LoginForm } from "@/components/login-form";
+import { createSupabaseServer } from "@/lib/supabase/server";
 
 export default async function HomePage() {
-  const supabase = await createSupabaseServer()
+  const supabase = await createSupabaseServer();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (user) {
-    redirect("/dashboard")
+    redirect("/dashboard");
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20 flex items-center justify-center px-4 py-8">
+    <div
+      className="
+      min-h-screen flex items-center justify-center px-4 py-10
+      bg-linear-to-br
+      from-slate-900 via-slate-900/95 to-slate-800
+      dark:from-slate-950 dark:via-slate-900 dark:to-slate-800
+    "
+    >
       <div className="w-full max-w-md">
+        {/* LOGO + TEXTO */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="p-4 bg-primary/10 rounded-2xl">
-              <GraduationCap className="w-12 h-12 text-primary" />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="edu-sentri"
+              width={220}
+              height={220}
+              priority
+              className="drop-shadow-md"
+            />
           </div>
-          <h1 className="text-4xl font-bold mb-2">Plataforma de Estudio</h1>
-          <p className="text-muted-foreground">
+
+          <p className="text-sm text-slate-300">
             Accede a tu cuenta o prueba nuestro demo gratuito
           </p>
         </div>
 
-        <LoginForm />
+        {/* CARD LOGIN */}
+        <div
+          className="
+        rounded-xl
+        bg-white/95 dark:bg-slate-900/90
+        border border-white/10
+        shadow-xl
+        backdrop-blur-sm
+      "
+        >
+          <div className="p-6">
+            <LoginForm />
+          </div>
+        </div>
 
-        <div className="mt-6">
+        {/* ACCIONES */}
+        <div className="mt-6 space-y-3">
+          {/* DEMO */}
           <Link href="/prueba?tipo=demo">
-            <Button variant="outline" className="w-full gap-2">
+            <Button
+              variant="outline"
+              className="
+              text-gray-800
+              w-full gap-2
+              border-slate-600
+              hover:bg-slate-700/50
+              hover:text-white
+              transition-all
+              mb-4
+              cursor-pointer
+            "
+            >
               Prueba Demo
               <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
+
+          {/* WHATSAPP */}
+          <a
+            href="https://wa.me/59169401617?text=Hola,%20quiero%20información%20sobre%20edu-sentri"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button
+              className="
+              w-full gap-2
+              bg-green-600/90 hover:bg-green-600
+              text-white
+              transition-all
+            "
+            >
+              <MessageCircle className="w-4 h-4" />
+              Contáctanos por WhatsApp
+            </Button>
+          </a>
         </div>
+        <div className="mt-12 text-center flex items-center justify-center gap-6 text-xs text-muted-foreground">
+          <Link
+            href="/terminos"
+            className="hover:text-white transition-colors underline-offset-4 hover:underline"
+          >
+            Términos
+          </Link>
+          <Link
+            href="/politicas"
+            className="hover:text-white transition-colors underline-offset-4 hover:underline"
+          >
+            Privacidad
+          </Link>
+          <span>&copy; 2025 EduSentri</span>
+        </div>
+
       </div>
     </div>
-  )
+  );
 }

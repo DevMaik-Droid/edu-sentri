@@ -48,13 +48,13 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
 
   return (
     <Sidebar className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
-      <SidebarHeader className="border-b border-sidebar-border/50 p-6 h-40">
+      <SidebarHeader className="border-b border-sidebar-border/50">
         <div className="flex items-center justify-center gap-3">
           <Image src="/logo.png" alt="Logo" width={180} height={180} />
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="py-4 px-2 space-y-4">
+      <SidebarContent className="py-4 px-2 space-y-4 scrollbar-hide">
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-bold mb-2 px-4">
             Gestión

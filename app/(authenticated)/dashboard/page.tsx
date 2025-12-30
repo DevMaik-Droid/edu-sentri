@@ -95,7 +95,7 @@ export default function DashboardPage() {
             onClick={() => navegar("https://www.minedu.gob.bo/index.php")}
           >
             <CardContent className="flex flex-col items-center justify-center gap-3 h-full text-center">
-              <span className="text-3xl font-bold tracking-wide">MIN-EDU</span>
+              <span className="text-3xl font-bold tracking-wide">MIN EDU</span>
               <span className="text-sm opacity-90">
                 Ministerio de Educación
               </span>
