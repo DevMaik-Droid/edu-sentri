@@ -22,12 +22,6 @@ export const seleccionarPreguntasGenerales = async () => {
   return preguntasBarajadas.slice(0, 100)
 }
 
-// Seleccionar 100 preguntas aleatorias de un área específica
-export const seleccionarPreguntasPorArea = async (area: string) => {
-  const preguntasDelArea = (await obtenerPreguntasTotal()).filter((p) => p.componente?.nombre === area)
-  const preguntasBarajadas = barajar(preguntasDelArea)
-  return preguntasBarajadas.slice(0, 100)
-}
 
 export const seleccionarPreguntasDemo = async () => {
   const preguntasBarajadas = barajar(await obtenerPreguntasTotal())

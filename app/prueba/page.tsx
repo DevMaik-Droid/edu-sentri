@@ -5,14 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { Pregunta, RespuestaUsuario, Area } from "@/types/pregunta";
 import {
   seleccionarPreguntasGenerales,
-  seleccionarPreguntasPorArea,
   seleccionarPreguntasDemo,
 } from "@/lib/seleccionar-preguntas";
 import { QuestionCard } from "@/components/question-card";
 import { ProgressBar } from "@/components/progress-bar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
-import { obtenerPreguntas } from "@/services/preguntas";
+import { obtenerPreguntas, obtenerPreguntasPorArea } from "@/services/preguntas";
 
 export default function PruebaPage() {
   const router = useRouter();
@@ -35,7 +34,7 @@ export default function PruebaPage() {
           break;
         case "area":
           if (area) {
-            preguntasCargadas = await seleccionarPreguntasPorArea(area);
+            preguntasCargadas = await obtenerPreguntasPorArea(area);
             sessionStorage.setItem("tipoPrueba", "area");
             sessionStorage.setItem("areaPrueba", area);
           } else {
