@@ -27,15 +27,18 @@ export function LoginForm() {
 
     try {
       const data = await loginAction(email, password);
+      console.log(data);
       if (data?.error) {
-        console.log(data.error);
         toast.error("Usuario no encontrado");
+        return;
       }
     } catch (err: unknown) {
-      toast.error((err as Error).message || "Error al iniciar sesión");
+      console.log(err);
     } finally {
       setIsLoading(false);
     }
+
+    window.location.href = "/dashboard";
   };
 
   return (

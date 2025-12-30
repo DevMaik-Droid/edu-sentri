@@ -31,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import Image from "next/image"
+import { useProfile } from "@/hooks/use-profile"
 
 const areas = [
   { label: "Comprensión Lectora", value: "comprension-lectora", icon: BookOpen },
@@ -44,17 +45,20 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ onLogout }: AppSidebarProps) {
+
+  const { profile, email } = useProfile()
   const pathname = usePathname()
+
 
   return (
     <Sidebar className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
-      <SidebarHeader className="border-b border-sidebar-border/50">
+      <SidebarHeader className="border-sidebar-border/50">
         <div className="flex items-center justify-center gap-3">
-          <Image src="/logo.png" alt="Logo" width={180} height={180} />
+          <Image src="/logo.png" alt="Logo" width={180} height={180} loading="eager" className="w-32 h-32 sm:w-48 sm:h-48" />
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="py-4 px-2 space-y-4 scrollbar-hide">
+      <SidebarContent className="px-2 space-y-4 scrollbar-hide">
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-bold mb-2 px-4">
             Gestión
@@ -175,11 +179,11 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
           <SidebarMenuItem>
             <div className="flex items-center gap-3 px-3 py-2 mb-2">
               <Avatar className="w-8 h-8 border border-sidebar-border">
-                <AvatarFallback className="bg-sidebar-accent text-[10px]">US</AvatarFallback>
+                <AvatarFallback className="bg-sidebar-accent text-[10px]">{profile?.nombre?.charAt(0)}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
-                <span className="text-xs font-semibold">Usuario Demo</span>
-                <span className="text-[10px] text-sidebar-foreground/50">Plan Premium</span>
+                <span className="text-xs font-semibold">{profile?.nombre}</span>
+                <span className="text-xs text-sidebar-foreground/70">{email}</span>
               </div>
             </div>
           </SidebarMenuItem>

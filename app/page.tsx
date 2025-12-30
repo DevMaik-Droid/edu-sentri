@@ -39,6 +39,7 @@ export default async function HomePage() {
               height={220}
               priority
               className="drop-shadow-md"
+              loading="eager"
             />
           </div>
 
@@ -57,7 +58,7 @@ export default async function HomePage() {
         backdrop-blur-sm
       "
         >
-          <div className="p-6">
+          <div className="p-1 sm:p-4">
             <LoginForm />
           </div>
         </div>

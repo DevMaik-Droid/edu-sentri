@@ -103,6 +103,7 @@ export default function PruebaPage() {
   return (
     <div className="bg-background h-screen flex flex-col">
       <div className="container mx-auto px-4 py-4 sm:py-8 flex flex-col h-full">
+
         {/* 🔝 PROGRESO (FIJO ARRIBA) */}
         <div className="mb-4 sm:mb-6 animate-in fade-in slide-in-from-top-1 duration-500 shrink-0">
           <ProgressBar actual={preguntaActual + 1} total={preguntas.length} />

@@ -1,27 +1,9 @@
 "use server"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { createSupabaseServer } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
 export async function loginAction(email: string, password: string) {
-  const cookieStore = cookies()
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          return (await cookieStore).getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(async ({ name, value, options }) => {
-            (await cookieStore).set(name, value, options)
-          })
-        },
-      },
-    }
-  )
+  const supabase = await createSupabaseServer()
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -32,28 +14,11 @@ export async function loginAction(email: string, password: string) {
     return { error: error.message }
   }
 
+  // 🔥 AQUÍ se escriben las cookies correctamente
   redirect("/dashboard")
 }
-
 export async function logoutAction(deviceId: string) {
-  const cookieStore = cookies()
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          return (await cookieStore).getAll()
-        },
-        async setAll(cookiesToSet) {
-          cookiesToSet.forEach(async ({ name, value, options }) => {
-            (await cookieStore).set(name, value, options)
-          })
-        },
-      },
-    }
-  )
+  const supabase = await createSupabaseServer()
 
   // 1️⃣ Obtener usuario actual
   const {
@@ -71,5 +36,5 @@ export async function logoutAction(deviceId: string) {
 
   await supabase.auth.signOut()
 
-  redirect("/")
+  return { success: true }
 }

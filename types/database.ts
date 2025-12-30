@@ -12,3 +12,7 @@ export type Disciplina = {
 }
 
 
+export interface Profile {
+  id?: string
+  nombre: string | null
+}

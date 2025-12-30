@@ -14,6 +14,7 @@ export default function ClientLayout({
   children: React.ReactNode
 }) {
 
+
   const handleLogout = async () => {
     const deviceId = getDeviceId()
     await logoutAction(deviceId)
