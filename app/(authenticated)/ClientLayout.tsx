@@ -23,7 +23,7 @@ export default function ClientLayout({
     <SidebarProvider>
       <AppSidebar onLogout={handleLogout} />
       <SidebarInset>
-        <header className="flex h-14 sm:h-16 shrink-0 items-center gap-2 border-b px-3 sm:px-4 bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/30">
+        <header className="flex h-14 sm:h-16 shrink-0 items-center gap-2 border-b px-3 sm:px-4 bg-card/50 backdrop-blur supports-backdrop-filter:bg-card/30">
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-6" />
           <div className="flex items-center gap-2">

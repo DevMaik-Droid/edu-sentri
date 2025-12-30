@@ -19,19 +19,34 @@ interface QuestionCardProps {
 
 type ColoresPorArea = {
   [key: string]: string;
-}
+};
 
 const coloresPorArea: ColoresPorArea = {
-  "Razonamiento Lógico": "bg-blue-500",  
-  "Lenguaje": "bg-green-500",
-  "Matemáticas": "bg-red-500",
-  "Ciencias": "bg-yellow-500",
-  "Default": "bg-gray-500"
-}
+  "Razonamiento Lógico": "bg-blue-600 text-white",
+  "Conocimientos Generales": "bg-green-600 text-white",
+  "Comprensión Lectora": "bg-violet-600 text-white",
+  "Habilidades Socioemocionales": "bg-pink-600 text-white",
+  "Default": "bg-gray-600 text-white",
+};
+
 const coloresPorDisciplina: ColoresPorArea = {
-  "Identificación de Patrones": "bg-blue-100 text-blue-500",
-  "Default": "bg-gray-100 text-gray-500"
-}
+  "Identificación de Patrones": "bg-blue-100 text-blue-700",
+  "Series Numéricas": "bg-blue-100 text-blue-700",
+  "Problemas Lógicos": "bg-blue-100 text-blue-700",
+  "Biología": "bg-green-100 text-green-700",
+  "Química": "bg-emerald-100 text-emerald-700",
+  "Física": "bg-cyan-100 text-cyan-700",
+
+  "Historia": "bg-amber-100 text-amber-700",
+  "Geografía": "bg-orange-100 text-orange-700",
+  "Filosofia": "bg-indigo-100 text-indigo-700",
+
+  "Lenguaje": "bg-violet-100 text-violet-700",
+
+  "Técnica Tecnológica": "bg-yellow-100 text-yellow-800",
+
+  "Default": "bg-gray-100 text-gray-600",
+};
 
 export function QuestionCard({
   pregunta,
@@ -53,7 +68,7 @@ export function QuestionCard({
     respuestaSeleccionada ===
     pregunta.opciones.find((opcion) => opcion.es_correcta)?.texto;
 
-    console.log(pregunta)
+  console.log(pregunta);
   return (
     <Card
       className={`border-2 transition-all duration-300 p-0 pb-5 ${
@@ -63,13 +78,23 @@ export function QuestionCard({
       }`}
     >
       <CardHeader className="m-0 p-0">
-        <div className={` flex items-center justify-center m-0 p-0 ${coloresPorArea[pregunta.componentes?.nombre || "Default"]} rounded-t-lg h-10 text-white font-bold`}>{pregunta.componentes?.nombre.toUpperCase()}</div>
+        <div
+          className={` flex items-center justify-center m-0 p-0 ${
+            coloresPorArea[pregunta.componentes?.nombre || "Default"]
+          } rounded-t-lg h-10 text-white font-bold`}
+        >
+          {pregunta.componentes?.nombre.toUpperCase()}
+        </div>
         {numeroActual && total && (
           <div className="flex items-center justify-between px-5 mt-1">
             <span className="text-xs font-medium text-muted-foreground">
               Pregunta {numeroActual} de {total}
             </span>
-            <span className={`text-xs px-2 sm:px-3 py-1 ${coloresPorDisciplina[pregunta.disciplinas?.nombre || "Default"]} rounded-full w-fit`}>
+            <span
+              className={`text-xs px-2 sm:px-3 py-1 ${
+                coloresPorDisciplina[pregunta.disciplinas?.nombre || "Default"]
+              } rounded-full w-fit`}
+            >
               {pregunta.disciplinas?.nombre}
             </span>
           </div>
@@ -77,10 +102,8 @@ export function QuestionCard({
         <h2 className="text-lg sm:text-xl font-semibold leading-relaxed px-5">
           {pregunta.num_pregunta}. {pregunta.enunciado}
         </h2>
-        
       </CardHeader>
-      <CardContent >
-        
+      <CardContent>
         <RadioGroup
           value={respuestaSeleccionada}
           onValueChange={handleChange}

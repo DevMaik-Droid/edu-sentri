@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react"
 import type { PreguntaUI } from "@/types/pregunta"
 import { guardarPreguntaIncorrecta } from "@/lib/errores"
 import { obtenerPreguntasPorArea } from "@/services/preguntas"
+import { LoadingLottie } from "@/components/loading-lottie"
 
 export default function PracticaAreaContent() {
   const searchParams = useSearchParams()
@@ -22,7 +23,11 @@ export default function PracticaAreaContent() {
   
   const [preguntas, setPreguntas]=useState<PreguntaUI[]>([])
 
+  console.log("Area:", area)
 
+  if (!area) {
+    router.push("/estudiar")
+  }
   useEffect( ()=>{
     
     const fetchPreguntas = async () => {
@@ -36,7 +41,7 @@ export default function PracticaAreaContent() {
 
 
   if (preguntas.length === 0) {
-    return <div className="container mx-auto px-4 py-8">Cargando...</div>
+    return <LoadingLottie size={150} />
   }
 
   const preguntaActual = preguntas[currentIndex]
