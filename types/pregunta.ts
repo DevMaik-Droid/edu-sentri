@@ -17,10 +17,28 @@ export interface Pregunta {
   sustento: string
   dificultad?: 'fácil' | 'media' | 'difícil'
   activa?: boolean
-  componente?: Componente
-  disciplina?: Disciplina
+  componentes?: Componente[]
+  disciplinas?: Disciplina[]
   num_pregunta?: number
 }
+
+// types/pregunta.ui.ts
+export interface PreguntaUI {
+  id: string
+  enunciado: string
+  opciones: {
+    clave: string
+    texto: string
+    es_correcta: boolean
+  }[]
+  sustento: string
+  dificultad?: 'fácil' | 'media' | 'difícil'
+  activa?: boolean
+  componentes?: Componente | null
+  disciplinas?: Disciplina | null
+  num_pregunta?: number
+}
+
 
 export interface RespuestaUsuario {
   preguntaId: string

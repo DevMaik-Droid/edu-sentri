@@ -1,14 +1,16 @@
 import { supabase } from "@/lib/supabase/client";
 
-import type { Pregunta } from "@/types/pregunta";
-export async function obtenerPreguntas(limit = 500) {
+import type { Pregunta, PreguntaUI } from "@/types/pregunta";
+import { mapPreguntaDBtoUI } from "./preguta.mapper";
+
+export async function obtenerPreguntas(limit = 10) : Promise<PreguntaUI[]> {
   const { data, error } = await supabase
     .from("preguntas")
     .select(
       `
       id,
      enunciado,
-     opciones,
+     opciones, 
      sustento,
      dificultad,
      activa,
@@ -20,15 +22,13 @@ export async function obtenerPreguntas(limit = 500) {
     .eq("activa", true)
     .limit(limit);
 
-  console.log(data);
-  if (error) {
-    console.error(error);
-    throw new Error("Error al obtener preguntas");
-  }
-  return data;
+  if (error) throw error
+  if (!data) return []
+    // 👇 Supabase puede devolver null
+  return (data as Pregunta[]).map(mapPreguntaDBtoUI)
 }
 
-export async function obtenerPreguntasPorArea(area: string, limit = 100) {
+export async function obtenerPreguntasPorArea(area: string, limit = 10) : Promise<PreguntaUI[]> {
   const { data, error } = await supabase
     .from("preguntas")
     .select(
@@ -49,10 +49,8 @@ export async function obtenerPreguntasPorArea(area: string, limit = 100) {
     .order("num_pregunta", { ascending: true })
     .limit(limit);
 
-  console.log(data);
-  if (error) {
-    console.error(error);
-    throw new Error("Error al obtener preguntas");
-  }
-  return data;
+  if (error) throw error
+  if (!data) return []
+    // 👇 Supabase puede devolver null
+  return (data as Pregunta[]).map(mapPreguntaDBtoUI)
 }

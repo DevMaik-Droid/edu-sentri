@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { QuestionCard } from "@/components/question-card"
 import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react"
-import type { Pregunta } from "@/types/pregunta"
+import type { PreguntaUI } from "@/types/pregunta"
 import { guardarPreguntaIncorrecta } from "@/lib/errores"
-import { obtenerPreguntas, obtenerPreguntasPorArea } from "@/services/preguntas"
+import { obtenerPreguntasPorArea } from "@/services/preguntas"
 
 export default function PracticaAreaContent() {
   const searchParams = useSearchParams()
@@ -20,7 +20,7 @@ export default function PracticaAreaContent() {
   const [respuestas, setRespuestas] = useState<Record<number, string>>({})
   const [finalizado, setFinalizado] = useState(false)
   
-  const [preguntas, setPreguntas]=useState<Pregunta[]>([])
+  const [preguntas, setPreguntas]=useState<PreguntaUI[]>([])
 
 
   useEffect( ()=>{
@@ -108,7 +108,7 @@ export default function PracticaAreaContent() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6 animate-in fade-in slide-in-from-top-2 duration-500">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-2xl font-bold">{area}</h2>
+          <h2 className="text-2xl font-bold">Progreso</h2>
           <span className="text-sm text-muted-foreground">
             Pregunta {currentIndex + 1} de {preguntas.length}
           </span>
@@ -118,6 +118,8 @@ export default function PracticaAreaContent() {
 
       <div key={currentIndex} className="animate-in fade-in slide-in-from-right-4 duration-300">
         <QuestionCard
+          numeroActual={currentIndex + 1}
+          total={preguntas.length}
           pregunta={preguntaActual}
           respuestaSeleccionada={respuestas[currentIndex]}
           onRespuesta={handleRespuesta}

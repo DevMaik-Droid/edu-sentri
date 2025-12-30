@@ -1,8 +1,8 @@
-import type { Pregunta } from "@/types/pregunta"
+import type { PreguntaUI } from "@/types/pregunta"
 
 const ERRORES_KEY = "preguntasErrores"
 
-export function guardarPreguntaIncorrecta(pregunta: Pregunta): void {
+export function guardarPreguntaIncorrecta(pregunta: PreguntaUI): void {
   if (typeof window === "undefined") return
 
   const errores = obtenerPreguntasIncorrectas()
@@ -14,7 +14,7 @@ export function guardarPreguntaIncorrecta(pregunta: Pregunta): void {
   }
 }
 
-export function obtenerPreguntasIncorrectas(): Pregunta[] {
+export function obtenerPreguntasIncorrectas(): PreguntaUI[] {
   if (typeof window === "undefined") return []
   const data = localStorage.getItem(ERRORES_KEY)
   if (!data) return []

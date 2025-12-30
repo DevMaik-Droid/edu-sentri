@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Pregunta, RespuestaUsuario, Area } from "@/types/pregunta";
+import type { RespuestaUsuario, Area, PreguntaUI } from "@/types/pregunta";
 import {
   seleccionarPreguntasGenerales,
   seleccionarPreguntasDemo,
@@ -12,6 +12,7 @@ import { ProgressBar } from "@/components/progress-bar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
 import { obtenerPreguntas, obtenerPreguntasPorArea } from "@/services/preguntas";
+import { LoadingLottie } from "@/components/loading-lottie";
 
 export default function PruebaPage() {
   const router = useRouter();
@@ -19,13 +20,13 @@ export default function PruebaPage() {
   const tipo = searchParams.get("tipo");
   const area = searchParams.get("area") as Area | null;
 
-  const [preguntas, setPreguntas] = useState<Pregunta[]>([]);
+  const [preguntas, setPreguntas] = useState<PreguntaUI[]>([]);
   const [preguntaActual, setPreguntaActual] = useState(0);
   const [respuestas, setRespuestas] = useState<RespuestaUsuario[]>([]);
 
   useEffect(() => {
     const cargarPreguntas = async () => {
-      let preguntasCargadas: Pregunta[] = await obtenerPreguntas();
+      let preguntasCargadas: PreguntaUI[] = await obtenerPreguntas();
 
       switch (tipo) {
         case "general":
@@ -89,11 +90,7 @@ export default function PruebaPage() {
 
   if (preguntas.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-base sm:text-lg text-muted-foreground">
-          Cargando preguntas...
-        </p>
-      </div>
+      <LoadingLottie size={150} />
     );
   }
 
@@ -123,13 +120,13 @@ export default function PruebaPage() {
           />
         </div>
 
-        <div className="mt-4 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between">
+        <div className="grid grid-cols-3 gap-3 mt-6">
           <Button
             variant="outline"
             size="lg"
             onClick={handleAnterior}
             disabled={preguntaActual === 0}
-            className="gap-2 bg-card h-12 sm:h-auto order-2 sm:order-1 transition-all duration-200 hover:scale-105"
+            className="gap-2 bg-card h-12 transition-all duration-200 hover:scale-105"
           >
             <ChevronLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Anterior</span>
@@ -141,7 +138,7 @@ export default function PruebaPage() {
               size="lg"
               onClick={handleFinalizar}
               disabled={respuestas.length !== preguntas.length}
-              className="gap-2 h-12 sm:h-auto order-1 sm:order-2 transition-all duration-200 hover:scale-105"
+              className="col-span-2 gap-2 h-12 transition-all duration-200 hover:scale-105"
             >
               <CheckCircle className="w-4 h-4" />
               Finalizar Prueba
@@ -151,7 +148,7 @@ export default function PruebaPage() {
               size="lg"
               onClick={handleSiguiente}
               disabled={preguntaActual === preguntas.length - 1}
-              className="gap-2 h-12 sm:h-auto order-1 sm:order-2 sm:ml-auto transition-all duration-200 hover:scale-105"
+              className="col-span-2 gap-2 h-12 transition-all duration-200 hover:scale-105"
             >
               <span className="hidden sm:inline">Siguiente</span>
               <span className="sm:hidden">Continuar</span>

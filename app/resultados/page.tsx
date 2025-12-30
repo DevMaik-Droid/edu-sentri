@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import type { Pregunta, RespuestaUsuario, Resultado, Area } from "@/types/pregunta"
+import type { RespuestaUsuario, Resultado, PreguntaUI } from "@/types/pregunta"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -27,7 +27,7 @@ export default function ResultadosPage() {
       return
     }
 
-    const preguntas: Pregunta[] = JSON.parse(preguntasStr)
+    const preguntas: PreguntaUI[] = JSON.parse(preguntasStr)
     const respuestas: RespuestaUsuario[] = JSON.parse(respuestasStr)
 
     // Calcular resultados
@@ -45,11 +45,11 @@ export default function ResultadosPage() {
         guardarPreguntaIncorrecta(pregunta)
       }
 
-      if (!porArea[pregunta.componente?.nombre || "General"]) {
-        porArea[pregunta.componente?.nombre || "General"] = { correctas: 0, total: 0 }
+      if (!porArea[pregunta.componentes?.nombre || "General"]) {
+        porArea[pregunta.componentes?.nombre || "General"] = { correctas: 0, total: 0 }
       }
-      porArea[pregunta.componente?.nombre || "General"].total++
-      if (esCorrecta) porArea[pregunta.componente?.nombre || "General"].correctas++
+      porArea[pregunta.componentes?.nombre || "General"].total++
+      if (esCorrecta) porArea[pregunta.componentes?.nombre || "General"].correctas++
     })
 
     const incorrectas = preguntas.length - correctas
