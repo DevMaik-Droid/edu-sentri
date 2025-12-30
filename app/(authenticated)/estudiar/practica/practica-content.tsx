@@ -9,14 +9,12 @@ import { QuestionCard } from "@/components/question-card"
 import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react"
 import type { Pregunta } from "@/types/pregunta"
 import { guardarPreguntaIncorrecta } from "@/lib/errores"
-import { obtenerPreguntas } from "@/services/preguntas"
+import { obtenerPreguntas, obtenerPreguntasPorArea } from "@/services/preguntas"
 
 export default function PracticaAreaContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const area = searchParams.get("area") || ""
-
-  const [preguntasArea, setPreguntasArea] = useState<Pregunta[]>([])
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [respuestas, setRespuestas] = useState<Record<number, string>>({})
@@ -28,32 +26,21 @@ export default function PracticaAreaContent() {
   useEffect( ()=>{
     
     const fetchPreguntas = async () => {
-      const preguntas = await obtenerPreguntas()
+      const preguntas = await obtenerPreguntasPorArea(area)
       setPreguntas(preguntas)
     }
 
     fetchPreguntas()
 
-  },[])
+  },[area])
 
 
-  useEffect(() => {
-    if (preguntas.length === 0) return
-
-    const preguntasFiltradas = preguntas
-      .filter((p) => p.componente?.nombre === area)
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 15)
-
-    
-  }, [preguntas, area])
-
-  if (preguntasArea.length === 0) {
+  if (preguntas.length === 0) {
     return <div className="container mx-auto px-4 py-8">Cargando...</div>
   }
 
-  const preguntaActual = preguntasArea[currentIndex]
-  const progreso = ((currentIndex + 1) / preguntasArea.length) * 100
+  const preguntaActual = preguntas[currentIndex]
+  const progreso = ((currentIndex + 1) / preguntas.length) * 100
 
   const handleRespuesta = (respuesta: string) => {
     setRespuestas((prev) => ({
@@ -63,7 +50,7 @@ export default function PracticaAreaContent() {
   }
 
   const handleSiguiente = () => {
-    if (currentIndex < preguntasArea.length - 1) {
+    if (currentIndex < preguntas.length - 1) {
       setCurrentIndex(currentIndex + 1)
     } else {
       setFinalizado(true)
@@ -77,10 +64,10 @@ export default function PracticaAreaContent() {
   }
 
   if (finalizado) {
-    const correctas = preguntasArea.filter((p, idx) => respuestas[idx] === p.opciones.find((o) => o.es_correcta)?.texto).length
+    const correctas = preguntas.filter((p, idx) => respuestas[idx] === p.opciones.find((o) => o.es_correcta)?.texto).length
 
     // Guardar preguntas incorrectas antes de mostrar resultados
-    preguntasArea.forEach((p, idx) => {
+    preguntas.forEach((p, idx) => {
       if (respuestas[idx] !== p.opciones.find((o) => o.es_correcta)?.texto) {
         guardarPreguntaIncorrecta(p)
       }
@@ -97,9 +84,9 @@ export default function PracticaAreaContent() {
               <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 dark:bg-green-900 mb-4">
                 <CheckCircle className="w-10 h-10 text-green-600" />
               </div>
-              <p className="text-5xl font-bold mb-2">{Math.round((correctas / preguntasArea.length) * 100)}%</p>
+              <p className="text-5xl font-bold mb-2">{Math.round((correctas / preguntas.length) * 100)}%</p>
               <p className="text-muted-foreground">
-                {correctas} de {preguntasArea.length} respuestas correctas
+                {correctas} de {preguntas.length} respuestas correctas
               </p>
             </div>
 
@@ -123,7 +110,7 @@ export default function PracticaAreaContent() {
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-2xl font-bold">{area}</h2>
           <span className="text-sm text-muted-foreground">
-            Pregunta {currentIndex + 1} de {preguntasArea.length}
+            Pregunta {currentIndex + 1} de {preguntas.length}
           </span>
         </div>
         <Progress value={progreso} className="h-2" />
@@ -154,7 +141,7 @@ export default function PracticaAreaContent() {
           disabled={!respuestas[currentIndex]}
           className="flex-1 gap-2 transition-all duration-200 hover:scale-105"
         >
-          {currentIndex === preguntasArea.length - 1 ? "Finalizar" : "Siguiente"}
+          {currentIndex === preguntas.length - 1 ? "Finalizar" : "Siguiente"}
           <ChevronRight className="w-4 h-4" />
         </Button>
       </div>

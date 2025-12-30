@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress"
 import { CheckCircle2, XCircle, Home, TrendingUp, Sparkles, RotateCcw } from "lucide-react"
 import { guardarIntento } from "@/lib/historial"
 import { guardarPreguntaIncorrecta } from "@/lib/errores"
-import { Componente } from "@/types/database"
+
 
 export default function ResultadosPage() {
   const router = useRouter()

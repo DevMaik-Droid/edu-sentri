@@ -25,6 +25,10 @@ const areas = [
   },
 ];
 
+const navegar = (url: string) => {
+  window.open(url, "_blank");
+};
+
 export default function DashboardPage() {
   const [historial, setHistorial] = useState<IntentoHistorico[]>([]);
 
@@ -42,7 +46,7 @@ export default function DashboardPage() {
 
         <EstadisticasDashboard historial={historial} />
 
-        <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:max-w-4xl">
+        <div className="grid gap-2 sm:gap-4 md:grid-cols-2 lg:grid-cols-2">
           <Link href="/prueba?tipo=general" className="md:col-span-2">
             <Button
               size="lg"
@@ -68,45 +72,25 @@ export default function DashboardPage() {
                   className="w-full h-14 sm:h-16 text-base sm:text-lg gap-2 sm:gap-3 justify-start bg-card hover:bg-accent/5"
                 >
                   <Icon
-                    className={`w-5 h-5 sm:w-6 sm:h-6 ${area.color} flex-shrink-0`}
+                    className={`w-5 h-5 sm:w-6 sm:h-6 ${area.color} shrink-0`}
                   />
                   <span className="text-left flex-1">{area.value}</span>
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                 </Button>
               </Link>
             );
           })}
         </div>
 
-        <div className="mt-8 sm:mt-12 grid gap-4 grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 lg:max-w-4xl">
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <p className="text-3xl sm:text-4xl font-bold text-primary mb-2">
-                1,000
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Preguntas Disponibles
-              </p>
+        <div className="mt-8 sm:mt-12 grid gap-4 grid-cols-1 xs:grid-cols-2 lg:grid-cols-2 lg:grid-rows-2">
+          <Card className="w-full h-full cursor-pointer hover:bg-accent/5" onClick={() => navegar("https://www.minedu.gob.bo/index.php")}>
+            <CardContent className="pt-6 text-center w-full h-full">
+              MIN - EDU
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <p className="text-3xl sm:text-4xl font-bold text-accent mb-2">
-                4
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Áreas de Conocimiento
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="xs:col-span-2 lg:col-span-1">
-            <CardContent className="pt-6 text-center">
-              <p className="text-3xl sm:text-4xl font-bold text-chart-3 mb-2">
-                100
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Preguntas por Prueba
-              </p>
+          <Card className="w-full h-full hover:bg-accent/5">
+            <CardContent className="pt-6 text-center  w-full h-full">
+              <Link href="/documentos/banco-preguntas.pdf" className="text-primary w-full h-full p-4" target="_blank">BANCO DE PREGUNTAS</Link>
             </CardContent>
           </Card>
         </div>

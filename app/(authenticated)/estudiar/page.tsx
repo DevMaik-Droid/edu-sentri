@@ -22,6 +22,7 @@ const areas = [
       "Inferencias y conclusiones",
     ],
     ejemplo: "Lee textos diversos y practica identificando la tesis, argumentos de apoyo y conclusiones del autor.",
+    preguntas: 100,
   },
   {
     id: "razonamiento-logico",
@@ -39,6 +40,7 @@ const areas = [
     ],
     ejemplo:
       "Practica con patrones: 2, 4, 8, 16... cada número es el doble del anterior. Identifica la lógica detrás de las secuencias.",
+    preguntas: 300,
   },
   {
     id: "conocimientos-generales",
@@ -56,6 +58,7 @@ const areas = [
     ],
     ejemplo:
       "Mantente informado sobre eventos actuales, lee sobre historia y ciencias. La cultura general se construye día a día.",
+    preguntas: 200,
   },
   {
     id: "habilidades-socioemocionales",
@@ -72,6 +75,7 @@ const areas = [
       "Autoconocimiento y autorregulación",
     ],
     ejemplo: "Reflexiona sobre situaciones sociales: ¿Cómo te sentirías en esa situación? ¿Qué harías para ayudar?",
+    preguntas: 5,
   },
 ]
 
@@ -126,7 +130,7 @@ export default function EstudiarPage() {
 
                 <Link href={`/estudiar/practica?area=${encodeURIComponent(area.titulo)}`}>
                   <Button className="w-full gap-2 transition-all duration-200 hover:scale-105">
-                    Practicar esta área (15 preguntas)
+                    Practicar esta área ({area.preguntas} preguntas)
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>

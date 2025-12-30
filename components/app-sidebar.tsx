@@ -51,7 +51,7 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
       <SidebarHeader className="border-b">
         <div className="flex items-center gap-2 px-2 py-3">
           <GraduationCap className="w-6 h-6 text-primary" />
-          <span className="font-bold text-lg">Plataforma Estudio</span>
+          <span className="font-bold text-lg">Edu-Sentri</span>
         </div>
       </SidebarHeader>
 
