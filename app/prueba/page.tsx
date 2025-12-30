@@ -1,0 +1,178 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { Pregunta, RespuestaUsuario, Area } from "@/types/pregunta";
+import {
+  seleccionarPreguntasGenerales,
+  seleccionarPreguntasPorArea,
+  seleccionarPreguntasDemo,
+} from "@/lib/seleccionar-preguntas";
+import { QuestionCard } from "@/components/question-card";
+import { ProgressBar } from "@/components/progress-bar";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
+import { obtenerPreguntas } from "@/services/preguntas";
+
+export default function PruebaPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tipo = searchParams.get("tipo");
+  const area = searchParams.get("area") as Area | null;
+
+  const [preguntas, setPreguntas] = useState<Pregunta[]>([]);
+  const [preguntaActual, setPreguntaActual] = useState(0);
+  const [respuestas, setRespuestas] = useState<RespuestaUsuario[]>([]);
+
+  useEffect(() => {
+    const cargarPreguntas = async () => {
+      let preguntasCargadas: Pregunta[] = await obtenerPreguntas();
+
+      switch (tipo) {
+        case "general":
+          preguntasCargadas = await seleccionarPreguntasGenerales();
+          sessionStorage.setItem("tipoPrueba", "general");
+          break;
+        case "area":
+          if (area) {
+            preguntasCargadas = await seleccionarPreguntasPorArea(area);
+            sessionStorage.setItem("tipoPrueba", "area");
+            sessionStorage.setItem("areaPrueba", area);
+          } else {
+            router.push("/");
+            return;
+          }
+          break;
+        case "demo":
+          preguntasCargadas = await seleccionarPreguntasDemo();
+          sessionStorage.setItem("tipoPrueba", "demo");
+          break;
+        default:
+          router.push("/");
+          return;
+      }
+
+      setPreguntas(preguntasCargadas);
+    };
+
+    cargarPreguntas();
+  }, [area, router, tipo]);
+
+  const handleSeleccionarRespuesta = (respuesta: string) => {
+    const preguntaId = preguntas[preguntaActual].id;
+    const respuestasActualizadas = respuestas.filter(
+      (r) => r.preguntaId !== preguntaId
+    );
+    respuestasActualizadas.push({
+      preguntaId,
+      respuestaSeleccionada: respuesta,
+    });
+    setRespuestas(respuestasActualizadas);
+  };
+
+  const handleAnterior = () => {
+    if (preguntaActual > 0) {
+      setPreguntaActual(preguntaActual - 1);
+    }
+  };
+
+  const handleSiguiente = () => {
+    if (preguntaActual < preguntas.length - 1) {
+      setPreguntaActual(preguntaActual + 1);
+    }
+  };
+
+  const handleFinalizar = () => {
+    sessionStorage.setItem("preguntas", JSON.stringify(preguntas));
+    sessionStorage.setItem("respuestas", JSON.stringify(respuestas));
+    router.push("/resultados");
+  };
+
+  if (preguntas.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-base sm:text-lg text-muted-foreground">
+          Cargando preguntas...
+        </p>
+      </div>
+    );
+  }
+
+  const respuestaActual = respuestas.find(
+    (r) => r.preguntaId === preguntas[preguntaActual].id
+  )?.respuestaSeleccionada;
+  const mostrarRespuesta = respuestaActual !== undefined;
+
+  return (
+    <div className="min-h-screen bg-background py-4 sm:py-8">
+      <div className="container mx-auto px-4 max-w-4xl">
+        <div className="mb-4 sm:mb-8 animate-in fade-in slide-in-from-top-1 duration-500">
+          <ProgressBar actual={preguntaActual + 1} total={preguntas.length} />
+        </div>
+
+        <div
+          key={preguntaActual}
+          className="animate-in fade-in slide-in-from-right-4 duration-300"
+        >
+          <QuestionCard
+            pregunta={preguntas[preguntaActual]}
+            numeroActual={preguntaActual + 1}
+            total={preguntas.length}
+            respuestaSeleccionada={respuestaActual}
+            onSeleccionarRespuesta={handleSeleccionarRespuesta}
+            mostrarRespuesta={mostrarRespuesta}
+          />
+        </div>
+
+        <div className="mt-4 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={handleAnterior}
+            disabled={preguntaActual === 0}
+            className="gap-2 bg-card h-12 sm:h-auto order-2 sm:order-1 transition-all duration-200 hover:scale-105"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Anterior</span>
+            <span className="sm:hidden">Atrás</span>
+          </Button>
+
+          {preguntaActual === preguntas.length - 1 ? (
+            <Button
+              size="lg"
+              onClick={handleFinalizar}
+              disabled={respuestas.length !== preguntas.length}
+              className="gap-2 h-12 sm:h-auto order-1 sm:order-2 transition-all duration-200 hover:scale-105"
+            >
+              <CheckCircle className="w-4 h-4" />
+              Finalizar Prueba
+            </Button>
+          ) : (
+            <Button
+              size="lg"
+              onClick={handleSiguiente}
+              disabled={preguntaActual === preguntas.length - 1}
+              className="gap-2 h-12 sm:h-auto order-1 sm:order-2 sm:ml-auto transition-all duration-200 hover:scale-105"
+            >
+              <span className="hidden sm:inline">Siguiente</span>
+              <span className="sm:hidden">Continuar</span>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+
+        <div className="mt-4 sm:mt-6 text-center">
+          {respuestas.length === preguntas.length ? (
+            <p className="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 animate-in fade-in duration-500">
+              ✓ ¡Has respondido todas las preguntas! Puedes finalizar.
+            </p>
+          ) : (
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              {respuestas.length} de {preguntas.length} respondidas
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
