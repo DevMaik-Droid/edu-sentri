@@ -11,7 +11,10 @@ import { QuestionCard } from "@/components/question-card";
 import { ProgressBar } from "@/components/progress-bar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
-import { obtenerPreguntas, obtenerPreguntasPorArea } from "@/services/preguntas";
+import {
+  obtenerPreguntas,
+  obtenerPreguntasPorArea,
+} from "@/services/preguntas";
 import { LoadingLottie } from "@/components/loading-lottie";
 
 export default function PruebaPage() {
@@ -89,9 +92,7 @@ export default function PruebaPage() {
   };
 
   if (preguntas.length === 0) {
-    return (
-      <LoadingLottie size={150} />
-    );
+    return <LoadingLottie size={150} />;
   }
 
   const respuestaActual = respuestas.find(
@@ -100,15 +101,17 @@ export default function PruebaPage() {
   const mostrarRespuesta = respuestaActual !== undefined;
 
   return (
-    <div className="min-h-screen bg-background py-4 sm:py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <div className="mb-4 sm:mb-8 animate-in fade-in slide-in-from-top-1 duration-500">
+    <div className="bg-background h-screen flex flex-col">
+      <div className="container mx-auto px-4 py-4 sm:py-8 flex flex-col h-full">
+        {/* 🔝 PROGRESO (FIJO ARRIBA) */}
+        <div className="mb-4 sm:mb-6 animate-in fade-in slide-in-from-top-1 duration-500 shrink-0">
           <ProgressBar actual={preguntaActual + 1} total={preguntas.length} />
         </div>
 
+        {/* 🧠 CONTENEDOR DE LA PREGUNTA (SCROLL INTERNO) */}
         <div
           key={preguntaActual}
-          className="animate-in fade-in slide-in-from-right-4 duration-300"
+          className="flex-1 animate-in fade-in slide-in-from-right-4 duration-300 min-h-0"
         >
           <QuestionCard
             pregunta={preguntas[preguntaActual]}
@@ -120,7 +123,8 @@ export default function PruebaPage() {
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mt-6">
+        {/* 🔽 BOTONES (SIEMPRE ABAJO) */}
+        <div className="mt-4 grid grid-cols-3 gap-3 shrink-0">
           <Button
             variant="outline"
             size="lg"
@@ -147,7 +151,6 @@ export default function PruebaPage() {
             <Button
               size="lg"
               onClick={handleSiguiente}
-              disabled={preguntaActual === preguntas.length - 1}
               className="col-span-2 gap-2 h-12 transition-all duration-200 hover:scale-105"
             >
               <span className="hidden sm:inline">Siguiente</span>
@@ -157,7 +160,8 @@ export default function PruebaPage() {
           )}
         </div>
 
-        <div className="mt-4 sm:mt-6 text-center">
+        {/* ℹ️ ESTADO */}
+        <div className="mt-3 sm:mt-4 text-center shrink-0">
           {respuestas.length === preguntas.length ? (
             <p className="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 animate-in fade-in duration-500">
               ✓ ¡Has respondido todas las preguntas! Puedes finalizar.

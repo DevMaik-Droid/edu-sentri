@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase/client";
 import type { Pregunta, PreguntaUI } from "@/types/pregunta";
 import { mapPreguntaDBtoUI } from "./preguta.mapper";
 
-export async function obtenerPreguntas(limit = 100) : Promise<PreguntaUI[]> {
+export async function obtenerPreguntas(limit = 10) : Promise<PreguntaUI[]> {
   const { data, error } = await supabase
     .from("preguntas")
     .select(
@@ -28,7 +28,7 @@ export async function obtenerPreguntas(limit = 100) : Promise<PreguntaUI[]> {
   return (data as Pregunta[]).map(mapPreguntaDBtoUI)
 }
 
-export async function obtenerPreguntasPorArea(area: string, limit = 100) : Promise<PreguntaUI[]> {
+export async function obtenerPreguntasPorArea(area: string, limit = 10) : Promise<PreguntaUI[]> {
   const { data, error } = await supabase
     .from("preguntas")
     .select(
