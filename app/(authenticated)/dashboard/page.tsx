@@ -83,14 +83,48 @@ export default function DashboardPage() {
         </div>
 
         <div className="mt-8 sm:mt-12 grid gap-4 grid-cols-1 xs:grid-cols-2 lg:grid-cols-2 lg:grid-rows-2">
-          <Card className="w-full h-full cursor-pointer hover:bg-accent/5" onClick={() => navegar("https://www.minedu.gob.bo/index.php")}>
-            <CardContent className="pt-6 text-center w-full h-full">
-              MIN - EDU
+          <Card
+            className="
+    w-full h-full cursor-pointer
+    bg-linear-to-br from-blue-500/90 to-blue-700
+    text-white
+    hover:scale-[1.02] hover:shadow-lg
+    transition-all duration-300
+    rounded-xl
+  "
+            onClick={() => navegar("https://www.minedu.gob.bo/index.php")}
+          >
+            <CardContent className="flex flex-col items-center justify-center gap-3 h-full text-center">
+              <span className="text-3xl font-bold tracking-wide">MIN-EDU</span>
+              <span className="text-sm opacity-90">
+                Ministerio de Educación
+              </span>
             </CardContent>
           </Card>
-          <Card className="w-full h-full hover:bg-accent/5">
-            <CardContent className="pt-6 text-center  w-full h-full">
-              <Link href="/documentos/banco-preguntas.pdf" className="text-primary w-full h-full p-4" target="_blank">BANCO DE PREGUNTAS</Link>
+
+          <Card
+            className="
+    w-full h-full
+    bg-linear-to-br from-emerald-500/90 to-green-700
+    text-white
+    hover:scale-[1.02] hover:shadow-lg
+    transition-all duration-300
+    rounded-xl
+  "
+          >
+            <CardContent className="flex flex-col items-center justify-center gap-3 h-full text-center">
+              <Link
+                href="/documentos/banco-preguntas.pdf"
+                target="_blank"
+                className="flex flex-col items-center gap-2"
+              >
+                <span className="text-3xl font-bold tracking-wide">
+                  Banco de Preguntas
+                </span>
+                <span className="text-sm opacity-90">
+                  Documento oficial en PDF
+                </span>
+              </Link>
             </CardContent>
           </Card>
         </div>
