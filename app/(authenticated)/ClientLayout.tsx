@@ -3,22 +3,20 @@
 import type React from "react"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
-import { useRouter } from "next/navigation"
 import { Separator } from "@/components/ui/separator"
 import { GraduationCap } from "lucide-react"
-import { supabase } from "@/lib/supabase/client"
+import { logoutAction } from "../actions/auth"
+import { getDeviceId } from "@/lib/auth/device"
 
 export default function ClientLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const router = useRouter()
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push("/")
-    router.refresh()
+    const deviceId = getDeviceId()
+    await logoutAction(deviceId)
   }
 
   return (

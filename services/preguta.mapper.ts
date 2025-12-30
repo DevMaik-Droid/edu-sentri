@@ -1,11 +1,10 @@
-// services/preguntas.mapper.ts
-import { Pregunta, PreguntaUI } from "@/types/pregunta"
-
+import { Pregunta, PreguntaUI } from "@/types/pregunta";
 
 export function mapPreguntaDBtoUI(p: Pregunta): PreguntaUI {
   return {
     ...p,
-    componentes: p.componentes?.[0] ?? null,
-    disciplinas: p.disciplinas?.[0] ?? null,
+    // Si es array, toma el primero; si es objeto, usa tal cual; si es undefined, null
+    componentes: Array.isArray(p.componentes) ? p.componentes[0] ?? null : p.componentes ?? null,
+    disciplinas: Array.isArray(p.disciplinas) ? p.disciplinas[0] ?? null : p.disciplinas ?? null,
   }
 }

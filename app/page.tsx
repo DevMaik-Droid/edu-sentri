@@ -1,11 +1,23 @@
-"use client"
+// app/page.tsx
+import { redirect } from "next/navigation"
 
 import { GraduationCap, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { LoginForm } from "@/components/login-form"
+import { createSupabaseServer } from "@/lib/supabase/server"
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createSupabaseServer()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (user) {
+    redirect("/dashboard")
+  }
+
   return (
     <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">

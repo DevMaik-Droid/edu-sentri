@@ -53,6 +53,7 @@ export function QuestionCard({
     respuestaSeleccionada ===
     pregunta.opciones.find((opcion) => opcion.es_correcta)?.texto;
 
+    console.log(pregunta)
   return (
     <Card
       className={`border-2 transition-all duration-300 p-0 pb-5 ${
