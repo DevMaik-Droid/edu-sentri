@@ -84,11 +84,11 @@ export async function logoutAction(deviceId: string) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 2️⃣ Marcar esta sesión como inactiva
+  // 2️⃣ Eliminar esta sesión
   if (user && deviceId) {
     await supabase
       .from("user_sessions")
-      .update({ activo: false })
+      .delete()
       .eq("user_id", user.id)
       .eq("device_id", deviceId);
   }
