@@ -31,6 +31,17 @@ const navegar = (url: string) => {
 
 export default function DashboardPage() {
   const [historial, setHistorial] = useState<IntentoHistorico[]>([]);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    const cargarHistorial = async () => {
+      setCargando(true);
+      const data = await obtenerHistorial();
+      setHistorial(data);
+      setCargando(false);
+    };
+    cargarHistorial();
+  }, []);
 
   return (
     <ClientLayout>
@@ -44,7 +55,21 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <EstadisticasDashboard historial={historial} />
+        {cargando ? (
+          <div className="mb-8 space-y-4">
+            <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-24 bg-muted animate-pulse rounded-lg"
+                />
+              ))}
+            </div>
+            <div className="h-48 bg-muted animate-pulse rounded-lg" />
+          </div>
+        ) : (
+          <EstadisticasDashboard historial={historial} />
+        )}
 
         <div className="grid gap-2 sm:gap-4 md:grid-cols-2 lg:grid-cols-2">
           <Link href="/prueba?tipo=general" className="md:col-span-2">

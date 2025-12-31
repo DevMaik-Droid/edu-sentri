@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
 import {
   obtenerPreguntas,
+  obtenerPreguntasGenerales,
   obtenerPreguntasPorArea,
 } from "@/services/preguntas";
 import { LoadingLottie } from "@/components/loading-lottie";
@@ -33,14 +34,11 @@ export default function PruebaPage() {
 
       switch (tipo) {
         case "general":
-          preguntasCargadas = await seleccionarPreguntasGenerales();
-          sessionStorage.setItem("tipoPrueba", "general");
+          preguntasCargadas = await obtenerPreguntasGenerales();
           break;
         case "area":
           if (area) {
-            preguntasCargadas = await obtenerPreguntasPorArea(area);
-            sessionStorage.setItem("tipoPrueba", "area");
-            sessionStorage.setItem("areaPrueba", area);
+            preguntasCargadas = await obtenerPreguntasPorArea(area, 0, 99);
           } else {
             router.push("/");
             return;
@@ -48,7 +46,6 @@ export default function PruebaPage() {
           break;
         case "demo":
           preguntasCargadas = await seleccionarPreguntasDemo();
-          sessionStorage.setItem("tipoPrueba", "demo");
           break;
         default:
           router.push("/");
@@ -73,21 +70,28 @@ export default function PruebaPage() {
     setRespuestas(respuestasActualizadas);
   };
 
-  const handleAnterior = () => {
+  const handleAnterior = async () => {
     if (preguntaActual > 0) {
       setPreguntaActual(preguntaActual - 1);
     }
   };
 
-  const handleSiguiente = () => {
+  const handleSiguiente = async () => {
     if (preguntaActual < preguntas.length - 1) {
       setPreguntaActual(preguntaActual + 1);
     }
   };
 
-  const handleFinalizar = () => {
-    sessionStorage.setItem("preguntas", JSON.stringify(preguntas));
-    sessionStorage.setItem("respuestas", JSON.stringify(respuestas));
+  const handleFinalizar = async () => {
+    // Usar localStorage temporalmente para pasar datos a la página de resultados
+    // Estos datos se limpiarán después de ser procesados
+    localStorage.setItem("temp_preguntas", JSON.stringify(preguntas));
+    localStorage.setItem("temp_respuestas", JSON.stringify(respuestas));
+    localStorage.setItem("temp_tipo", tipo || "general");
+    if (area) {
+      localStorage.setItem("temp_area", area);
+    }
+
     router.push("/resultados");
   };
 
@@ -103,7 +107,6 @@ export default function PruebaPage() {
   return (
     <div className="bg-background h-screen flex flex-col">
       <div className="container mx-auto px-4 py-4 sm:py-8 flex flex-col h-full">
-
         {/* 🔝 PROGRESO (FIJO ARRIBA) */}
         <div className="mb-4 sm:mb-6 animate-in fade-in slide-in-from-top-1 duration-500 shrink-0">
           <ProgressBar actual={preguntaActual + 1} total={preguntas.length} />

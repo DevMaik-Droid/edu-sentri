@@ -66,9 +66,8 @@ export function QuestionCard({
   const mostrar = mostrarRespuesta || mostrarCorrecta;
   const esCorrecta =
     respuestaSeleccionada ===
-    pregunta.opciones.find((opcion) => opcion.es_correcta)?.texto;
+    pregunta.opciones.find((opcion) => opcion.es_correcta)?.clave;
 
-  console.log(pregunta);
   return (
     <Card
       className={`flex gap-2 flex-col h-full border-2 p-0 pb-2 transition-all duration-300 ${
@@ -119,9 +118,9 @@ export function QuestionCard({
           >
             {pregunta.opciones.map((opcion, index) => {
               const seleccion_correcta =
-                respuestaSeleccionada === opcion.texto && opcion.es_correcta;
+                respuestaSeleccionada === opcion.clave && opcion.es_correcta;
               const seleccion_incorrecta =
-                respuestaSeleccionada === opcion.texto && !opcion.es_correcta;
+                respuestaSeleccionada === opcion.clave && !opcion.es_correcta;
 
               return (
                 <div
@@ -135,7 +134,7 @@ export function QuestionCard({
                   }`}
                 >
                   <RadioGroupItem
-                    value={opcion.texto}
+                    value={opcion.clave}
                     id={`opcion-${index}`}
                     disabled={mostrar}
                     className="shrink-0"
