@@ -5,6 +5,7 @@ import type {
 } from "@/types/pregunta";
 
 import { supabase } from "@/lib/supabase/client";
+import { getLocalHistory, setLocalHistory } from "@/lib/local-storage";
 
 export interface GuardarIntentoParams {
   tipo: string;
@@ -99,6 +100,13 @@ export async function guardarIntentoSupabase(
  */
 export async function obtenerHistorialSupabase(): Promise<IntentoHistorico[]> {
   try {
+    // 1. Intentar obtener desde LocalStorage primero
+    const cachedHistory = getLocalHistory();
+    if (cachedHistory && cachedHistory.length > 0) {
+      return cachedHistory;
+    }
+
+    // 2. Si no hay cache, obtener de Supabase
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -119,7 +127,7 @@ export async function obtenerHistorialSupabase(): Promise<IntentoHistorico[]> {
     }
 
     // Transformar datos de Supabase al formato IntentoHistorico
-    return data.map((intento) => ({
+    const historial = data.map((intento) => ({
       id: intento.id,
       fecha: new Date(intento.fecha),
       tipo: intento.tipo,
@@ -130,6 +138,11 @@ export async function obtenerHistorialSupabase(): Promise<IntentoHistorico[]> {
       porcentaje: intento.porcentaje,
       porArea: intento.por_area,
     }));
+
+    // Actualizar caché local
+    setLocalHistory(historial);
+
+    return historial;
   } catch (error) {
     console.error("Error inesperado al obtener historial:", error);
     return [];

@@ -22,12 +22,40 @@ import {
   Settings,
   Play,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { PreguntaUI } from "@/types/pregunta";
 import {
   obtenerPreguntasPorArea,
   obtenerConteoPreguntasPorArea,
+  obtenerRangoPreguntas,
 } from "@/services/preguntas";
 import { LoadingLottie } from "@/components/loading-lottie";
+
+const AREAS_CON_DISCIPLINAS: Record<string, string[]> = {
+  "Razonamiento Lógico": [
+    "Identificación de Patrones",
+    "Razonamiento Lógico Matemático",
+    "Problemas Matemático",
+  ],
+  "Conocimientos Generales": [
+    "Física",
+    "Matemática",
+    "Química",
+    "Geografía",
+    "Psicologia",
+    "Filosofia",
+    "Historia",
+    "Biología",
+    "Técnica Tecnológica",
+    "Lenguaje",
+  ],
+};
 
 export default function PracticaAreaContent() {
   const searchParams = useSearchParams();
@@ -39,6 +67,12 @@ export default function PracticaAreaContent() {
   const [rangoInicio, setRangoInicio] = useState(1);
   const [rangoFin, setRangoFin] = useState(20);
   const [totalDisponible, setTotalDisponible] = useState(0);
+  const [disciplinaSeleccionada, setDisciplinaSeleccionada] = useState<string>(
+    () => {
+      const currentArea = searchParams.get("area") || "";
+      return AREAS_CON_DISCIPLINAS[currentArea]?.[0] || "todas";
+    }
+  );
   const [cargando, setCargando] = useState(false);
   const [cargandoTotal, setCargandoTotal] = useState(true);
 
@@ -53,15 +87,53 @@ export default function PracticaAreaContent() {
       router.push("/estudiar");
       return;
     }
+  }, [area, router]);
+
+  // Reset disciplina ONLY when area changes
+  useEffect(() => {
+    if (!area) return;
+
+    if (AREAS_CON_DISCIPLINAS[area]) {
+      setDisciplinaSeleccionada(AREAS_CON_DISCIPLINAS[area][0]);
+    } else {
+      setDisciplinaSeleccionada("todas");
+    }
+  }, [area]);
+
+  // Fetch data when depedencies change
+  useEffect(() => {
+    if (!area) return;
 
     // Cargar total disponible
     const fetchTotal = async () => {
       try {
-        const total = await obtenerConteoPreguntasPorArea(area);
-        setTotalDisponible(total);
-        // Ajustar valores por defecto
-        if (total > 0) {
-          setRangoFin(Math.min(total, 20)); // Default first 20 or total
+        const isRazonamientoLogico = area === "Razonamiento Lógico";
+        const disciplina =
+          disciplinaSeleccionada === "todas"
+            ? undefined
+            : disciplinaSeleccionada;
+
+        if (isRazonamientoLogico && disciplina) {
+          // Lógica especial para Razonamiento Lógico con disciplina: cargar rangos reales
+          const rangos = await obtenerRangoPreguntas(area, disciplina);
+          if (rangos) {
+            setTotalDisponible(rangos.max - rangos.min + 1); // Aproximado
+            setRangoInicio(rangos.min);
+            // Máximo 100 preguntas por limitación de UI
+            const sugeridoFin = Math.min(rangos.max, rangos.min + 99);
+            setRangoFin(sugeridoFin);
+          }
+        } else {
+          // Lógica standard y conocimientos generales
+          const total = await obtenerConteoPreguntasPorArea(area, disciplina);
+          setTotalDisponible(total);
+          // Ajustar valores por defecto para standard
+          if (total > 0) {
+            setRangoFin(Math.min(total, 20)); // Default first 20 or total
+          } else {
+            setRangoInicio(1);
+            setRangoFin(20);
+          }
         }
       } catch (error) {
         console.error("Error al cargar total:", error);
@@ -70,26 +142,67 @@ export default function PracticaAreaContent() {
       }
     };
     fetchTotal();
-  }, [area, router]);
+  }, [area, disciplinaSeleccionada]);
 
   /* ───────────────── INICIO ───────────────── */
+
+  const isRazonamientoLogico = area === "Razonamiento Lógico";
+  const isConocimientosGenerales = area === "Conocimientos Generales";
 
   const handleIniciar = async () => {
     setCargando(true);
     try {
-      // Validaciones finales
-      const inicio = Math.max(1, rangoInicio);
-      const fin = Math.min(
-        rangoFin,
-        totalDisponible > 0 ? totalDisponible : 200
-      );
+      let data: PreguntaUI[] = [];
 
-      // Supabase range es 0-indexed
-      // range(0, 9) retorna 10 items
-      const data = await obtenerPreguntasPorArea(area, inicio - 1, fin - 1);
+      if (isConocimientosGenerales) {
+        // Para conocimientos generales, traer todas (o un límite alto por defecto si es necesario, aquí usamos range sobre indices)
+        // Se asume que el usuario quiere practicar todo lo de esa disciplina o area
+        // Usamos totalDisponible como límite
+        const total = totalDisponible > 0 ? totalDisponible : 200;
+        data = await obtenerPreguntasPorArea(
+          area,
+          0,
+          total - 1,
+          disciplinaSeleccionada === "todas"
+            ? undefined
+            : disciplinaSeleccionada,
+          false
+        );
+      } else if (isRazonamientoLogico) {
+        // Para razonamiento lógico, usar num_pregunta explícito
+        // No se resta 1, se usan los valores tal cual como IDs lógicos
+        const disciplina =
+          disciplinaSeleccionada === "todas"
+            ? undefined
+            : disciplinaSeleccionada;
+        data = await obtenerPreguntasPorArea(
+          area,
+          rangoInicio,
+          rangoFin,
+          disciplina,
+          true // usarNumPregunta
+        );
+      } else {
+        // Comportamiento default (indices 0-based)
+        const inicio = Math.max(1, rangoInicio);
+        const fin = Math.min(
+          rangoFin,
+          totalDisponible > 0 ? totalDisponible : 200
+        );
+        const disciplina =
+          disciplinaSeleccionada === "todas"
+            ? undefined
+            : disciplinaSeleccionada;
+        data = await obtenerPreguntasPorArea(
+          area,
+          inicio - 1,
+          fin - 1,
+          disciplina,
+          false
+        );
+      }
 
       if (data.length === 0) {
-        // Manejar caso vacío
         console.error("No se encontraron preguntas en el rango");
       }
 
@@ -152,11 +265,33 @@ export default function PracticaAreaContent() {
     if (cargando || cargandoTotal) return <LoadingLottie size={150} />;
 
     const cantidadSeleccionada = Math.max(0, rangoFin - rangoInicio + 1);
-    const esValido =
-      rangoInicio > 0 &&
-      rangoFin >= rangoInicio &&
-      rangoFin <= (totalDisponible || 200) &&
-      cantidadSeleccionada <= 200;
+
+    // Validación dinámica
+    let esValido = false;
+    let mensajeError = "";
+
+    if (isConocimientosGenerales) {
+      esValido = true; // No hay input de rango, siempre válido si total > 0 (o manejado en UI)
+    } else if (isRazonamientoLogico) {
+      // Validar rango size <= 100
+      if (cantidadSeleccionada > 100) {
+        esValido = false;
+        mensajeError = "El rango no puede exceder 100 preguntas.";
+      } else if (rangoInicio < 1 || rangoFin < rangoInicio) {
+        esValido = false;
+        mensajeError = "Rango inválido.";
+      } else {
+        esValido = true;
+      }
+    } else {
+      // Default validation
+      esValido =
+        rangoInicio > 0 &&
+        rangoFin >= rangoInicio &&
+        rangoFin <= (totalDisponible || 200) &&
+        cantidadSeleccionada <= 200;
+      if (cantidadSeleccionada > 200) mensajeError = "Máximo 200 preguntas.";
+    }
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
@@ -168,57 +303,114 @@ export default function PracticaAreaContent() {
             </CardTitle>
             <CardDescription>
               {totalDisponible > 0
-                ? `Hay ${totalDisponible} preguntas disponibles para ${area}`
+                ? `Hay ${totalDisponible} preguntas disponibles para ${area}${
+                    disciplinaSeleccionada !== "todas"
+                      ? ` (${disciplinaSeleccionada})`
+                      : ""
+                  }`
                 : `Personaliza tu sesión de práctica para ${area}`}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+            {AREAS_CON_DISCIPLINAS[area] && (
               <div className="space-y-2">
-                <Label htmlFor="inicio">Desde pregunta</Label>
-                <Input
-                  id="inicio"
-                  type="number"
-                  min="1"
-                  max={totalDisponible}
-                  value={rangoInicio}
-                  onChange={(e) => setRangoInicio(Number(e.target.value))}
-                  className="text-lg font-medium"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="fin">Hasta pregunta</Label>
-                <Input
-                  id="fin"
-                  type="number"
-                  min={rangoInicio}
-                  max={Math.min(rangoInicio + 199, totalDisponible || 200)}
-                  value={rangoFin}
-                  onChange={(e) => setRangoFin(Number(e.target.value))}
-                  className="text-lg font-medium"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2 bg-muted/50 p-4 rounded-lg">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
-                  Preguntas seleccionadas:
-                </span>
-                <span
-                  className={`font-bold ${
-                    cantidadSeleccionada > 200 ? "text-red-500" : ""
-                  }`}
+                <Label>Filtrar por Disciplina</Label>
+                <Select
+                  value={disciplinaSeleccionada}
+                  onValueChange={(value) => {
+                    setDisciplinaSeleccionada(value);
+                    // setRangoInicio will be handled by useEffect
+                  }}
                 >
-                  {cantidadSeleccionada}
-                </span>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona una disciplina" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AREAS_CON_DISCIPLINAS[area].map((d) => (
+                      <SelectItem key={d} value={d}>
+                        {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              {cantidadSeleccionada > 200 && (
-                <p className="text-xs text-red-500 font-medium">
-                  El máximo permitido es de 200 preguntas por sesión.
+            )}
+
+            {/* Inputs de Rango - Ocultos para Conocimientos Generales */}
+            {!isConocimientosGenerales ? (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="inicio">
+                      {isRazonamientoLogico
+                        ? "Pregunta No. (Inicio)"
+                        : "Desde pregunta (Índice)"}
+                    </Label>
+                    <Input
+                      id="inicio"
+                      type="number"
+                      min="1"
+                      max={!isRazonamientoLogico ? totalDisponible : undefined}
+                      value={rangoInicio}
+                      onChange={(e) => setRangoInicio(Number(e.target.value))}
+                      className="text-lg font-medium"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fin">
+                      {isRazonamientoLogico
+                        ? "Pregunta No. (Fin)"
+                        : "Hasta pregunta (Índice)"}
+                    </Label>
+                    <Input
+                      id="fin"
+                      type="number"
+                      min={rangoInicio}
+                      max={
+                        !isRazonamientoLogico
+                          ? Math.min(rangoInicio + 199, totalDisponible || 200)
+                          : undefined
+                      }
+                      value={rangoFin}
+                      onChange={(e) => setRangoFin(Number(e.target.value))}
+                      className="text-lg font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2 bg-muted/50 p-4 rounded-lg">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {isRazonamientoLogico
+                        ? "Rango de preguntas:"
+                        : "Preguntas seleccionadas:"}
+                    </span>
+                    <span
+                      className={`font-bold ${!esValido ? "text-red-500" : ""}`}
+                    >
+                      {cantidadSeleccionada}
+                    </span>
+                  </div>
+                  {mensajeError && (
+                    <p className="text-xs text-red-500 font-medium">
+                      {mensajeError}
+                    </p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="bg-muted/50 p-6 rounded-lg text-center">
+                <p className="text-muted-foreground">
+                  Se cargarán todas las preguntas disponibles para{" "}
+                  <span className="font-semibold text-foreground">
+                    {disciplinaSeleccionada !== "todas"
+                      ? disciplinaSeleccionada
+                      : area}
+                  </span>
+                  .
                 </p>
-              )}
-            </div>
+              </div>
+            )}
           </CardContent>
           <CardFooter>
             <Button

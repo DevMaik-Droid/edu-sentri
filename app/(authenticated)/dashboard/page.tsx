@@ -2,13 +2,14 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Brain, Lightbulb, Heart, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { EstadisticasDashboard } from "@/components/estadisticas-dashboard";
-import { obtenerHistorial } from "@/lib/historial";
 import type { IntentoHistorico } from "@/types/pregunta";
 import ClientLayout from "../ClientLayout";
+import { obtenerHistorialSupabase } from "@/services/intentos";
 
 const areas = [
   { value: "Comprensión Lectora", icon: BookOpen, color: "text-blue-600" },
@@ -36,7 +37,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const cargarHistorial = async () => {
       setCargando(true);
-      const data = await obtenerHistorial();
+      const data = await obtenerHistorialSupabase();
       setHistorial(data);
       setCargando(false);
     };
@@ -68,44 +69,59 @@ export default function DashboardPage() {
             <div className="h-48 bg-muted animate-pulse rounded-lg" />
           </div>
         ) : (
-          <EstadisticasDashboard historial={historial} />
+          <Tabs defaultValue="pruebas" className="space-y-4 mb-8">
+            <TabsList>
+              <TabsTrigger value="pruebas">Pruebas</TabsTrigger>
+              <TabsTrigger value="practicas">Prácticas</TabsTrigger>
+            </TabsList>
+            <TabsContent value="pruebas">
+              <EstadisticasDashboard
+                historial={historial.filter((h) => h.tipo === "general")}
+              />
+
+              <div className="grid gap-2 sm:gap-4 md:grid-cols-2 lg:grid-cols-2">
+                <Link href="/prueba?tipo=general" className="md:col-span-2">
+                  <Button
+                    size="lg"
+                    className="w-full h-14 sm:h-16 text-base sm:text-lg gap-2"
+                  >
+                    Prueba General (100 Preguntas)
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </Button>
+                </Link>
+
+                {areas.map((area) => {
+                  const Icon = area.icon;
+                  return (
+                    <Link
+                      key={area.value}
+                      href={`/prueba?tipo=area&area=${encodeURIComponent(
+                        area.value
+                      )}`}
+                    >
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="w-full h-14 sm:h-16 text-base sm:text-lg gap-2 sm:gap-3 justify-start bg-card hover:bg-accent/5"
+                      >
+                        <Icon
+                          className={`w-5 h-5 sm:w-6 sm:h-6 ${area.color} shrink-0`}
+                        />
+                        <span className="text-left flex-1">{area.value}</span>
+                        <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                      </Button>
+                    </Link>
+                  );
+                })}
+              </div>
+            </TabsContent>
+            <TabsContent value="practicas">
+              <EstadisticasDashboard
+                historial={historial.filter((h) => h.tipo === "area")}
+              />
+            </TabsContent>
+          </Tabs>
         )}
-
-        <div className="grid gap-2 sm:gap-4 md:grid-cols-2 lg:grid-cols-2">
-          <Link href="/prueba?tipo=general" className="md:col-span-2">
-            <Button
-              size="lg"
-              className="w-full h-14 sm:h-16 text-base sm:text-lg gap-2"
-            >
-              Prueba General (100 Preguntas)
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-            </Button>
-          </Link>
-
-          {areas.map((area) => {
-            const Icon = area.icon;
-            return (
-              <Link
-                key={area.value}
-                href={`/prueba?tipo=area&area=${encodeURIComponent(
-                  area.value
-                )}`}
-              >
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full h-14 sm:h-16 text-base sm:text-lg gap-2 sm:gap-3 justify-start bg-card hover:bg-accent/5"
-                >
-                  <Icon
-                    className={`w-5 h-5 sm:w-6 sm:h-6 ${area.color} shrink-0`}
-                  />
-                  <span className="text-left flex-1">{area.value}</span>
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                </Button>
-              </Link>
-            );
-          })}
-        </div>
 
         <div className="mt-8 sm:mt-12 grid gap-4 grid-cols-1 xs:grid-cols-2 lg:grid-cols-2 lg:grid-rows-2">
           <Card
@@ -139,12 +155,12 @@ export default function DashboardPage() {
           >
             <CardContent className="flex flex-col items-center justify-center gap-3 h-full text-center">
               <Link
-                href="/documentos/banco-preguntas.pdf"
+                href="/documentos/repositorio_preguntas.pdf"
                 target="_blank"
                 className="flex flex-col items-center gap-2"
               >
                 <span className="text-3xl font-bold tracking-wide">
-                  Banco de Preguntas
+                  Repositorio de Preguntas
                 </span>
                 <span className="text-sm opacity-90">
                   Documento oficial en PDF

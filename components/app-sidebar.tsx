@@ -191,7 +191,7 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start gap-3 hover:bg-destructive/10 hover:text-destructive text-sidebar-foreground/70"
+              className="w-full justify-start gap-3 text-white hover:text-red-100 bg-red-600 hover:bg-red-700 cursor-pointer"
               onClick={onLogout}
             >
               <LogOut className="w-4 h-4" />

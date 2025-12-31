@@ -20,7 +20,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { guardarIntentoSupabase } from "@/services/intentos";
-import { guardarPreguntaIncorrecta } from "@/lib/errores";
+import { saveLocalHistory, addToReviewQueue } from "@/lib/local-storage";
 
 export default function ResultadosPage() {
   const router = useRouter();
@@ -54,9 +54,9 @@ export default function ResultadosPage() {
 
       if (esCorrecta) correctas++;
 
-      // Guardar pregunta incorrecta para repaso
+      // Guardar pregunta incorrecta para repaso (Local Storage)
       if (!esCorrecta) {
-        guardarPreguntaIncorrecta(pregunta);
+        addToReviewQueue(pregunta);
       }
 
       if (!porArea[pregunta.componentes?.nombre || "General"]) {
@@ -91,7 +91,7 @@ export default function ResultadosPage() {
     // Guardar intento en Supabase
     const guardarIntento = async () => {
       try {
-        await guardarIntentoSupabase({
+        const result = await guardarIntentoSupabase({
           tipo: tipoPrueba,
           area: areaPrueba,
           totalPreguntas: preguntas.length,
@@ -102,6 +102,21 @@ export default function ResultadosPage() {
           preguntas,
           respuestas,
         });
+
+        if (result.success && result.intentoId) {
+          // Guardar en historial local para caché
+          saveLocalHistory({
+            id: result.intentoId,
+            fecha: new Date(),
+            tipo: tipoPrueba,
+            area: areaPrueba,
+            totalPreguntas: preguntas.length,
+            correctas,
+            incorrectas,
+            porcentaje,
+            porArea: resultadosPorArea,
+          });
+        }
 
         // Limpiar localStorage temporal después de guardar exitosamente
         localStorage.removeItem("temp_preguntas");
@@ -280,7 +295,6 @@ export default function ResultadosPage() {
 
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-700">
           <Button
-            
             onClick={() => router.push("/dashboard")}
             className="gap-2 sm:h-auto flex-1 transition-all duration-200 hover:scale-105"
           >
@@ -288,7 +302,6 @@ export default function ResultadosPage() {
             Volver al Inicio
           </Button>
           <Button
-            
             variant="outline"
             onClick={() => router.push("/prueba?tipo=general")}
             className="gap-2 sm:h-auto flex-1 transition-all duration-200 hover:scale-105"
