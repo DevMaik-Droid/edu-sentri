@@ -15,18 +15,21 @@ import { Label } from "@/components/ui/label";
 import { Lock, Mail } from "lucide-react";
 import { loginAction } from "@/app/actions/auth";
 import { toast } from "react-hot-toast";
+import { getDeviceId } from "@/lib/auth/device";
+
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const deviceId = getDeviceId();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const data = await loginAction(email, password);
+      const data = await loginAction(email, password, deviceId);
       console.log(data);
       if (data?.error) {
         toast.error("Usuario no encontrado");
