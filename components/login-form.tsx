@@ -32,7 +32,7 @@ export function LoginForm() {
       const data = await loginAction(email, password, deviceId);
       console.log(data);
       if (data?.error) {
-        toast.error("Usuario no encontrado");
+        toast.error(data.error);
         return;
       }
     } catch (err: unknown) {
