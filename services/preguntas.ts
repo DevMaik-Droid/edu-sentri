@@ -1,32 +1,22 @@
 import { supabase } from "@/lib/supabase/client";
 
-import type { Pregunta, PreguntaUI } from "@/types/pregunta";
-import { mapPreguntaDBtoUI } from "./preguta.mapper";
+import type { Pregunta, PreguntaGeneralRPC, PreguntaUI } from "@/types/pregunta";
+import { mapPreguntaDBtoUI, mapPreguntaGeneralRPCtoUI } from "./preguta.mapper";
 
 
-export async function obtenerPreguntasGenerales(limit = 100): Promise<PreguntaUI[]> {
-  const { data, error } = await supabase
-    .from("preguntas")
-    .select(
-      `
-      id,
-     enunciado,
-     opciones, 
-     sustento,
-     dificultad,
-     activa,
-     componentes(nombre),
-     disciplinas(nombre),
-     num_pregunta
-    `
-    )
-    .eq("activa", true)
-    .limit(limit);
 
-  if (error) throw error;
-  if (!data) return [];
-  // 👇 Supabase puede devolver null
-  return (data as Pregunta[]).map(mapPreguntaDBtoUI);
+export async function obtenerPreguntasGenerales(
+  preguntasPorComponente = 25
+): Promise<PreguntaUI[]> {
+  const { data, error } = await supabase.rpc(
+    "obtener_preguntas_generales",
+    { preguntas_por_componente: preguntasPorComponente }
+  )
+
+  if (error) throw error
+  if (!data) return []
+
+  return (data as PreguntaGeneralRPC[]).map(mapPreguntaGeneralRPCtoUI)
 }
 
 

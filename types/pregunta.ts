@@ -39,6 +39,23 @@ export interface PreguntaUI {
   num_pregunta?: number
 }
 
+export interface PreguntaGeneralRPC {
+  id: string
+  enunciado: string
+  opciones: {
+    clave: string
+    texto: string
+    es_correcta: boolean
+  }[]
+  sustento: string
+  dificultad: 'fácil' | 'media' | 'difícil'
+  activa: boolean
+  componente_nombre: string
+  disciplina_nombre: string
+  num_pregunta: number | null
+}
+
+
 
 export interface RespuestaUsuario {
   preguntaId: string
