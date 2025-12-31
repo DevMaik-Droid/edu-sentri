@@ -18,7 +18,6 @@ import {
   saveActiveSession,
   clearActiveSession,
 } from "@/lib/local-storage";
-import ClientLayout from "../(authenticated)/ClientLayout";
 
 export default function PruebaPage() {
   const router = useRouter();
