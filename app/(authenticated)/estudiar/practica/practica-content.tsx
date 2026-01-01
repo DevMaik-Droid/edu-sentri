@@ -21,6 +21,9 @@ import {
   CheckCircle,
   Settings,
   Play,
+  BookOpen,
+  FileText,
+  Eye,
 } from "lucide-react";
 import {
   Select,
@@ -30,12 +33,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { PreguntaUI } from "@/types/pregunta";
+import type { TextoLecturaConPreguntas } from "@/types/textos-lectura";
 import {
   obtenerPreguntasPorArea,
   obtenerConteoPreguntasPorArea,
   obtenerRangoPreguntas,
+  obtenerPreguntasPorTextoLectura,
 } from "@/services/preguntas";
+import { obtenerTextosLectura } from "@/services/textos-lectura";
 import { LoadingLottie } from "@/components/loading-lottie";
+import ReactMarkdown from "react-markdown";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import ClientLayout from "../../ClientLayout";
 
 const AREAS_CON_DISCIPLINAS: Record<string, string[]> = {
   "Razonamiento Lógico": [
@@ -57,10 +74,13 @@ const AREAS_CON_DISCIPLINAS: Record<string, string[]> = {
   ],
 };
 
+type Fase = "configuracion" | "seleccion-textos" | "lectura" | "preguntas";
+
 export default function PracticaAreaContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const area = searchParams.get("area") || "";
+  const isComprensionLectora = area === "Comprensión Lectora";
 
   // Estados de configuración
   const [configurado, setConfigurado] = useState(false);
@@ -75,6 +95,17 @@ export default function PracticaAreaContent() {
   );
   const [cargando, setCargando] = useState(false);
   const [cargandoTotal, setCargandoTotal] = useState(true);
+
+  // Estados para Comprensión Lectora
+  const [fase, setFase] = useState<Fase>("configuracion");
+  const [textosDisponibles, setTextosDisponibles] = useState<
+    TextoLecturaConPreguntas[]
+  >([]);
+  const [textosSeleccionados, setTextosSeleccionados] = useState<string[]>([]);
+  const [indiceTextoActual, setIndiceTextoActual] = useState(0);
+  const [textoActual, setTextoActual] =
+    useState<TextoLecturaConPreguntas | null>(null);
+  const [showTextoDialog, setShowTextoDialog] = useState(false);
 
   // Estados de la práctica
   const [preguntas, setPreguntas] = useState<PreguntaUI[]>([]);
@@ -104,7 +135,24 @@ export default function PracticaAreaContent() {
   useEffect(() => {
     if (!area) return;
 
-    // Cargar total disponible
+    // Si es Comprensión Lectora, cargar textos disponibles
+    if (isComprensionLectora) {
+      const cargarTextos = async () => {
+        try {
+          const textos = await obtenerTextosLectura();
+          setTextosDisponibles(textos);
+          setFase("seleccion-textos");
+        } catch (error) {
+          console.error("Error cargando textos:", error);
+        } finally {
+          setCargandoTotal(false);
+        }
+      };
+      cargarTextos();
+      return;
+    }
+
+    // Cargar total disponible para otras áreas
     const fetchTotal = async () => {
       try {
         const isRazonamientoLogico = area === "Razonamiento Lógico";
@@ -142,9 +190,93 @@ export default function PracticaAreaContent() {
       }
     };
     fetchTotal();
-  }, [area, disciplinaSeleccionada]);
+  }, [area, disciplinaSeleccionada, isComprensionLectora]);
 
   /* ───────────────── INICIO ───────────────── */
+
+  // Funciones para Comprensión Lectora
+  const toggleTextoSeleccionado = (textoId: string) => {
+    // Solo permitir seleccionar un texto a la vez
+    setTextosSeleccionados([textoId]);
+  };
+
+  const handleIniciarLectura = () => {
+    if (textosSeleccionados.length === 0) return;
+
+    const primerTexto = textosDisponibles.find(
+      (t) => t.id === textosSeleccionados[0]
+    );
+    if (!primerTexto) return;
+
+    // Limpiar cache si cambió de texto
+    if (textoActual && textoActual.id !== primerTexto.id) {
+      const oldCacheKey = `texto_${textoActual.id}`;
+      localStorage.removeItem(oldCacheKey);
+    }
+
+    setTextoActual(primerTexto);
+    setIndiceTextoActual(0);
+    setFase("lectura");
+  };
+
+  const handleComenzarPreguntas = async () => {
+    if (!textoActual) return;
+
+    setCargando(true);
+    try {
+      // Intentar cargar desde localStorage primero
+      const cacheKey = `texto_${textoActual.id}`;
+      const cached = localStorage.getItem(cacheKey);
+
+      let preguntasDelTexto: PreguntaUI[];
+
+      if (cached) {
+        const { preguntas: cachedPreguntas, timestamp } = JSON.parse(cached);
+        // Cache válido por 24 horas
+        const isValid = Date.now() - timestamp < 24 * 60 * 60 * 1000;
+
+        if (isValid) {
+          preguntasDelTexto = cachedPreguntas;
+        } else {
+          // Cache expirado, recargar
+          preguntasDelTexto = await obtenerPreguntasPorTextoLectura(
+            textoActual.id
+          );
+          localStorage.setItem(
+            cacheKey,
+            JSON.stringify({
+              preguntas: preguntasDelTexto,
+              texto: textoActual,
+              timestamp: Date.now(),
+            })
+          );
+        }
+      } else {
+        // No hay cache, cargar y guardar
+        preguntasDelTexto = await obtenerPreguntasPorTextoLectura(
+          textoActual.id
+        );
+        localStorage.setItem(
+          cacheKey,
+          JSON.stringify({
+            preguntas: preguntasDelTexto,
+            texto: textoActual,
+            timestamp: Date.now(),
+          })
+        );
+      }
+
+      setPreguntas(preguntasDelTexto);
+      setCurrentIndex(0);
+      setRespuestas({});
+      setFase("preguntas");
+      setConfigurado(true);
+    } catch (error) {
+      console.error("Error cargando preguntas:", error);
+    } finally {
+      setCargando(false);
+    }
+  };
 
   const isRazonamientoLogico = area === "Razonamiento Lógico";
   const isConocimientosGenerales = area === "Conocimientos Generales";
@@ -228,7 +360,25 @@ export default function PracticaAreaContent() {
     if (currentIndex < preguntas.length - 1) {
       setCurrentIndex((p) => p + 1);
     } else {
-      handleFinalizar();
+      // Si es comprensión lectora y hay más textos, pasar al siguiente
+      if (
+        isComprensionLectora &&
+        indiceTextoActual < textosSeleccionados.length - 1
+      ) {
+        const siguienteIndice = indiceTextoActual + 1;
+        const siguienteTexto = textosDisponibles.find(
+          (t) => t.id === textosSeleccionados[siguienteIndice]
+        );
+
+        if (siguienteTexto) {
+          setTextoActual(siguienteTexto);
+          setIndiceTextoActual(siguienteIndice);
+          setFase("lectura");
+          setConfigurado(false);
+        }
+      } else {
+        handleFinalizar();
+      }
     }
   };
 
@@ -263,6 +413,187 @@ export default function PracticaAreaContent() {
 
   if (!configurado) {
     if (cargando || cargandoTotal) return <LoadingLottie size={150} />;
+
+    // Vista de selección de textos para Comprensión Lectora
+    if (isComprensionLectora && fase === "seleccion-textos") {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background px-4">
+          <Card className="w-full max-w-3xl animate-in fade-in zoom-in duration-300">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="w-6 h-6 text-primary" />
+                Seleccionar Textos de Lectura
+              </CardTitle>
+              <CardDescription>
+                Selecciona un texto para practicar comprensión lectora
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto">
+              {textosDisponibles.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No hay textos disponibles en este momento.
+                </p>
+              ) : (
+                textosDisponibles.map((texto) => (
+                  <div
+                    key={texto.id}
+                    className={`flex items-start gap-3 p-4 rounded-lg border-2 transition-all cursor-pointer hover:bg-accent ${
+                      textosSeleccionados.includes(texto.id)
+                        ? "border-primary bg-primary/5"
+                        : "border-border"
+                    }`}
+                    onClick={() => toggleTextoSeleccionado(texto.id)}
+                  >
+                    <div className="w-5 h-5 mt-1 shrink-0">
+                      <div
+                        className={`w-5 h-5 rounded-full border-2 transition-all ${
+                          textosSeleccionados.includes(texto.id)
+                            ? "border-primary bg-primary"
+                            : "border-border"
+                        }`}
+                      >
+                        {textosSeleccionados.includes(texto.id) && (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-white" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold mb-1">{texto.titulo}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {texto.num_preguntas} pregunta
+                        {texto.num_preguntas !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                    <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
+                  </div>
+                ))
+              )}
+            </CardContent>
+            <CardFooter>
+              <Button
+                className="w-full h-12 text-lg gap-2"
+                onClick={handleIniciarLectura}
+                disabled={textosSeleccionados.length === 0}
+              >
+                <Play className="w-5 h-5 fill-current" />
+                Comenzar Práctica
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      );
+    }
+
+    // Vista de lectura para Comprensión Lectora
+    if (isComprensionLectora && fase === "lectura" && textoActual) {
+      return (
+        <div className="bg-background min-h-screen">
+          <div className="container mx-auto px-4 py-8 max-w-4xl">
+            {textosSeleccionados.length > 1 && (
+              <div className="mb-6">
+                <Progress
+                  value={
+                    ((indiceTextoActual + 1) / textosSeleccionados.length) * 100
+                  }
+                  className="h-2"
+                />
+                <div className="flex justify-between mt-1 text-sm text-muted-foreground">
+                  <span>
+                    Texto {indiceTextoActual + 1} de{" "}
+                    {textosSeleccionados.length}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <Card className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="w-6 h-6 text-primary" />
+                  {textoActual.titulo}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="max-h-[75vh] overflow-y-auto">
+                <div className="prose prose-base dark:prose-invert max-w-none">
+                  <ReactMarkdown
+                    components={{
+                      h2: ({ ...props }) => (
+                        <h2
+                          className="text-2xl font-bold mt-6 mb-4 text-foreground"
+                          {...props}
+                        />
+                      ),
+                      h3: ({ ...props }) => (
+                        <h3
+                          className="text-xl font-semibold mt-5 mb-3 text-foreground"
+                          {...props}
+                        />
+                      ),
+                      p: ({ ...props }) => (
+                        <p
+                          className="mb-4 leading-7 text-foreground/90"
+                          {...props}
+                        />
+                      ),
+                      ul: ({ ...props }) => (
+                        <ul
+                          className="my-4 ml-6 list-disc space-y-2"
+                          {...props}
+                        />
+                      ),
+                      ol: ({ ...props }) => (
+                        <ol
+                          className="my-4 ml-6 list-decimal space-y-2"
+                          {...props}
+                        />
+                      ),
+                      li: ({ ...props }) => (
+                        <li className="leading-7" {...props} />
+                      ),
+                      strong: ({ ...props }) => (
+                        <strong
+                          className="font-semibold text-foreground"
+                          {...props}
+                        />
+                      ),
+                      em: ({ ...props }) => (
+                        <em className="italic" {...props} />
+                      ),
+                    }}
+                  >
+                    {textoActual.contenido}
+                  </ReactMarkdown>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setFase("seleccion-textos")}
+                >
+                  Volver a Selección
+                </Button>
+                <Button
+                  onClick={handleComenzarPreguntas}
+                  disabled={cargando}
+                  className="gap-2"
+                >
+                  {cargando ? (
+                    "Cargando..."
+                  ) : (
+                    <>
+                      Comenzar Preguntas
+                      <ChevronRight className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </div>
+      );
+    }
 
     const cantidadSeleccionada = Math.max(0, rangoFin - rangoInicio + 1);
 
@@ -446,13 +777,25 @@ export default function PracticaAreaContent() {
   const progreso = ((currentIndex + 1) / preguntas.length) * 100;
 
   return (
-    <div className="bg-background h-screen">
+    <ClientLayout>
+    <div className="bg-background h-full">
       <div className="container mx-auto px-4 py-2 sm:py-8 h-full flex flex-col">
         {/* PROGRESO */}
         <div className="mb-4 sm:mb-6 shrink-0">
           <Progress value={progreso} className="h-2" />
-          <div className="flex justify-between mt-1 text-sm text-muted-foreground">
+          <div className="flex justify-between mt-1 text-sm text-muted-foreground items-center">
             <span>Pregunta {currentIndex + 1}</span>
+            {isComprensionLectora && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowTextoDialog(true)}
+                className="h-6 gap-1.5 text-xs font-medium text-primary hover:text-primary/80"
+              >
+                <Eye className="w-3 h-3" />
+                Ver Texto
+              </Button>
+            )}
             <span>Total {preguntas.length}</span>
           </div>
         </div>
@@ -492,7 +835,10 @@ export default function PracticaAreaContent() {
             {currentIndex === preguntas.length - 1 ? (
               <>
                 <CheckCircle className="w-4 h-4" />
-                Finalizar Práctica
+                {isComprensionLectora &&
+                indiceTextoActual < textosSeleccionados.length - 1
+                  ? "Siguiente Texto"
+                  : "Finalizar Práctica"}
               </>
             ) : (
               <>
@@ -508,6 +854,74 @@ export default function PracticaAreaContent() {
           {Object.keys(respuestas).length} de {preguntas.length} respondidas
         </div>
       </div>
+
+      {/* AlertDialog para mostrar texto de lectura */}
+      <AlertDialog open={showTextoDialog} onOpenChange={setShowTextoDialog}>
+        <AlertDialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-primary" />
+              {textoActual?.titulo || "Texto de Lectura"}
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <div className="flex-1 overflow-y-auto pr-2">
+            {textoActual && (
+              <div className="prose prose-base dark:prose-invert max-w-none">
+                <ReactMarkdown
+                  components={{
+                    h2: ({ ...props }) => (
+                      <h2
+                        className="text-2xl font-bold mt-6 mb-4 text-foreground"
+                        {...props}
+                      />
+                    ),
+                    h3: ({ ...props }) => (
+                      <h3
+                        className="text-xl font-semibold mt-5 mb-3 text-foreground"
+                        {...props}
+                      />
+                    ),
+                    p: ({ ...props }) => (
+                      <p
+                        className="mb-4 leading-7 text-foreground/90"
+                        {...props}
+                      />
+                    ),
+                    ul: ({ ...props }) => (
+                      <ul
+                        className="my-4 ml-6 list-disc space-y-2"
+                        {...props}
+                      />
+                    ),
+                    ol: ({ ...props }) => (
+                      <ol
+                        className="my-4 ml-6 list-decimal space-y-2"
+                        {...props}
+                      />
+                    ),
+                    li: ({ ...props }) => (
+                      <li className="leading-7" {...props} />
+                    ),
+                    strong: ({ ...props }) => (
+                      <strong
+                        className="font-semibold text-foreground"
+                        {...props}
+                      />
+                    ),
+                    em: ({ ...props }) => <em className="italic" {...props} />,
+                  }}
+                >
+                  {textoActual.contenido}
+                </ReactMarkdown>
+              </div>
+            )}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cerrar</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+    </ClientLayout>
   );
 }

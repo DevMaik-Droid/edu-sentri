@@ -164,3 +164,34 @@ export async function obtenerRangoPreguntas(
 
   return { min, max };
 }
+
+/**
+ * Obtiene las preguntas asociadas a un texto de lectura específico
+ */
+export async function obtenerPreguntasPorTextoLectura(
+  textoLecturaId: string
+): Promise<PreguntaUI[]> {
+  const { data, error } = await supabase
+    .from("preguntas")
+    .select(
+      `
+      id,
+     enunciado,
+     opciones,
+     sustento,
+     dificultad,
+     activa,
+     componentes(nombre),
+     disciplinas(nombre),
+     num_pregunta
+    `
+    )
+    .eq("activa", true)
+    .eq("texto_lectura_id", textoLecturaId)
+    .order("num_pregunta", { ascending: true });
+
+  if (error) throw error;
+  if (!data) return [];
+
+  return (data as Pregunta[]).map(mapPreguntaDBtoUI);
+}

@@ -11,6 +11,7 @@ import {
   RotateCw,
   Settings,
   Brain,
+  BookOpen,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import type { PreguntaUI } from "@/types/pregunta";
@@ -30,6 +31,18 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { AREAS_CON_DISCIPLINAS } from "@/lib/constants";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import { obtenerTextoLecturaPorId } from "@/services/textos-lectura";
+import type { TextoLectura } from "@/types/textos-lectura";
+import ReactMarkdown from "react-markdown";
 
 interface Configuracion {
   modo: "aleatorio" | "especifico";
@@ -51,6 +64,11 @@ export default function RecordarPage() {
   });
   const [loading, setLoading] = useState(true);
   const [showConfig, setShowConfig] = useState(false);
+
+  // Estados para texto de lectura
+  const [showTextoDialog, setShowTextoDialog] = useState(false);
+  const [textoLectura, setTextoLectura] = useState<TextoLectura | null>(null);
+  const [loadingTexto, setLoadingTexto] = useState(false);
 
   // Configuración
   const [config, setConfig] = useState<Configuracion>({
@@ -189,6 +207,23 @@ export default function RecordarPage() {
   const handleReiniciar = () => {
     // Recargar con la misma configuración actual (re-roll random questions)
     cargarPreguntas(config);
+  };
+
+  const handleVerTexto = async () => {
+    if (!preguntaActual.texto_lectura_id) return;
+
+    setLoadingTexto(true);
+    setShowTextoDialog(true);
+    try {
+      const texto = await obtenerTextoLecturaPorId(
+        preguntaActual.texto_lectura_id
+      );
+      setTextoLectura(texto);
+    } catch (error) {
+      console.error("Error cargando texto:", error);
+    } finally {
+      setLoadingTexto(false);
+    }
   };
 
   // --- Render Configuration ---
@@ -398,12 +433,27 @@ export default function RecordarPage() {
 
         <Card className="min-h-[400px] flex flex-col">
           <CardHeader>
-            <Badge className="w-fit mb-2">
-              {preguntaActual.componentes?.nombre || "General"}
-            </Badge>
-            <CardTitle className="text-xl leading-relaxed text-balance">
-              {preguntaActual.enunciado}
-            </CardTitle>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <Badge className="w-fit mb-2">
+                  {preguntaActual.componentes?.nombre || "General"}
+                </Badge>
+                <CardTitle className="text-xl leading-relaxed text-balance">
+                  {preguntaActual.enunciado}
+                </CardTitle>
+              </div>
+              {preguntaActual.componentes?.nombre === "Comprensión Lectora" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleVerTexto}
+                  className="gap-2 shrink-0"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Ver Texto
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-6 flex-1 flex flex-col">
             {!mostrarRespuesta ? (
@@ -546,6 +596,88 @@ export default function RecordarPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* AlertDialog para mostrar texto de lectura */}
+        <AlertDialog open={showTextoDialog} onOpenChange={setShowTextoDialog}>
+          <AlertDialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-primary" />
+                {textoLectura?.titulo || "Texto de Lectura"}
+              </AlertDialogTitle>
+              {textoLectura?.fuente && (
+                <AlertDialogDescription>
+                  Fuente: {textoLectura.fuente}
+                </AlertDialogDescription>
+              )}
+            </AlertDialogHeader>
+            <div className="flex-1 overflow-y-auto pr-2">
+              {loadingTexto ? (
+                <div className="flex items-center justify-center py-12">
+                  <Brain className="w-8 h-8 animate-pulse text-primary/50" />
+                </div>
+              ) : textoLectura ? (
+                <div className="prose prose-base dark:prose-invert max-w-none">
+                  <ReactMarkdown
+                    components={{
+                      h2: ({ ...props }) => (
+                        <h2
+                          className="text-2xl font-bold mt-6 mb-4 text-foreground"
+                          {...props}
+                        />
+                      ),
+                      h3: ({ ...props }) => (
+                        <h3
+                          className="text-xl font-semibold mt-5 mb-3 text-foreground"
+                          {...props}
+                        />
+                      ),
+                      p: ({ ...props }) => (
+                        <p
+                          className="mb-4 leading-7 text-foreground/90"
+                          {...props}
+                        />
+                      ),
+                      ul: ({ ...props }) => (
+                        <ul
+                          className="my-4 ml-6 list-disc space-y-2"
+                          {...props}
+                        />
+                      ),
+                      ol: ({ ...props }) => (
+                        <ol
+                          className="my-4 ml-6 list-decimal space-y-2"
+                          {...props}
+                        />
+                      ),
+                      li: ({ ...props }) => (
+                        <li className="leading-7" {...props} />
+                      ),
+                      strong: ({ ...props }) => (
+                        <strong
+                          className="font-semibold text-foreground"
+                          {...props}
+                        />
+                      ),
+                      em: ({ ...props }) => (
+                        <em className="italic" {...props} />
+                      ),
+                    }}
+                  >
+                    {textoLectura.contenido}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">
+                  No se pudo cargar el texto.
+                </p>
+              )}
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cerrar</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </ClientLayout>
   );
