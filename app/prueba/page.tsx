@@ -8,16 +8,27 @@ import { QuestionCard } from "@/components/question-card";
 import { ProgressBar } from "@/components/progress-bar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
-import {
-  obtenerPreguntasGenerales,
-  obtenerPreguntasPorArea,
-} from "@/services/preguntas";
+import { obtenerPreguntasPorArea } from "@/services/preguntas";
 import { LoadingLottie } from "@/components/loading-lottie";
 import {
   getActiveSession,
   saveActiveSession,
   clearActiveSession,
 } from "@/lib/local-storage";
+import { obtenerPruebaGeneral } from "@/services/simulacro";
+import { obtenerTextoLecturaPorId } from "@/services/textos-lectura";
+import type { TextoLectura } from "@/types/textos-lectura";
+import ReactMarkdown from "react-markdown";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import { Eye, BookOpen } from "lucide-react";
 
 export default function PruebaPage() {
   const router = useRouter();
@@ -29,6 +40,11 @@ export default function PruebaPage() {
   const [preguntaActual, setPreguntaActual] = useState(0);
   const [respuestas, setRespuestas] = useState<RespuestaUsuario[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // States for reading comprehension text
+  const [textoLectura, setTextoLectura] = useState<TextoLectura | null>(null);
+  const [showTextoDialog, setShowTextoDialog] = useState(false);
+  const [loadingTexto, setLoadingTexto] = useState(false);
 
   // Helper to save session state
   const persistSession = useCallback(
@@ -69,7 +85,7 @@ export default function PruebaPage() {
       try {
         switch (tipo) {
           case "general":
-            preguntasCargadas = await obtenerPreguntasGenerales();
+            preguntasCargadas = await obtenerPruebaGeneral();
             break;
           case "area":
             if (area) {
@@ -101,6 +117,70 @@ export default function PruebaPage() {
       cargarPreguntas();
     }
   }, [area, router, tipo, persistSession]);
+
+  // Effect to load text when question changes
+  useEffect(() => {
+    const currentPregunta = preguntas[preguntaActual];
+    if (!currentPregunta?.texto_lectura_id) {
+      setTextoLectura(null);
+      return;
+    }
+
+    const loadText = async () => {
+      // If we already have the text loaded, don't reload unless ID changed
+      if (textoLectura?.id === currentPregunta.texto_lectura_id) return;
+
+      setLoadingTexto(true);
+      try {
+        const cacheKey = `texto_content_${currentPregunta.texto_lectura_id}`;
+        const cachedText = localStorage.getItem(cacheKey);
+
+        if (cachedText) {
+          const parsed = JSON.parse(cachedText);
+          // Simple version check or expiry could go here, for now infinite cache until finish?
+          // Or just standard cache. Textos usually don't change often.
+          // Let's use it.
+          setTextoLectura(parsed);
+
+          // Logic to auto-show dialog
+          const prevPregunta =
+            preguntaActual > 0 ? preguntas[preguntaActual - 1] : null;
+          if (
+            !prevPregunta ||
+            prevPregunta.texto_lectura_id !== currentPregunta.texto_lectura_id
+          ) {
+            setShowTextoDialog(true);
+          }
+          setLoadingTexto(false);
+          return;
+        }
+
+        const texto = await obtenerTextoLecturaPorId(
+          currentPregunta.texto_lectura_id!
+        );
+        if (texto) {
+          setTextoLectura(texto);
+          localStorage.setItem(cacheKey, JSON.stringify(texto));
+
+          // Logic to auto-show dialog
+          const prevPregunta =
+            preguntaActual > 0 ? preguntas[preguntaActual - 1] : null;
+          if (
+            !prevPregunta ||
+            prevPregunta.texto_lectura_id !== currentPregunta.texto_lectura_id
+          ) {
+            setShowTextoDialog(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading text:", error);
+      } finally {
+        setLoadingTexto(false);
+      }
+    };
+
+    loadText();
+  }, [preguntaActual, preguntas, textoLectura]);
 
   const handleSeleccionarRespuesta = (respuesta: string) => {
     const preguntaId = preguntas[preguntaActual].id;
@@ -156,80 +236,175 @@ export default function PruebaPage() {
   const mostrarRespuesta = respuestaActual !== undefined;
 
   return (
-   
-      <div className="bg-background h-[calc(100vh-4rem)] flex flex-col">
-        <div className="container mx-auto px-4 py-4 sm:py-8 flex flex-col h-full">
-          {/* 🔝 PROGRESO (FIJO ARRIBA) */}
-          <div className="mb-4 sm:mb-6 animate-in fade-in slide-in-from-top-1 duration-500 shrink-0">
+    <div className="bg-background h-[calc(100vh-4rem)] flex flex-col">
+      <div className="container mx-auto px-4 py-4 sm:py-8 flex flex-col h-full">
+        {/* 🔝 PROGRESO (FIJO ARRIBA) */}
+        <div className="mb-4 sm:mb-6 animate-in fade-in slide-in-from-top-1 duration-500 shrink-0">
+          <div className="flex flex-col gap-2">
             <ProgressBar actual={preguntaActual + 1} total={preguntas.length} />
-          </div>
 
-          {/* 🧠 CONTENEDOR DE LA PREGUNTA (SCROLL INTERNO) */}
-          <div
-            key={preguntaActual}
-            className="flex-1 animate-in fade-in slide-in-from-right-4 duration-300 min-h-0 relative"
-          >
-            <QuestionCard
-              pregunta={preguntas[preguntaActual]}
-              numeroActual={preguntaActual + 1}
-              total={preguntas.length}
-              respuestaSeleccionada={respuestaActual}
-              onSeleccionarRespuesta={handleSeleccionarRespuesta}
-              mostrarRespuesta={mostrarRespuesta}
-            />
-          </div>
-
-          {/* 🔽 BOTONES (SIEMPRE ABAJO) */}
-          <div className="mt-4 grid grid-cols-3 gap-3 shrink-0">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={handleAnterior}
-              disabled={preguntaActual === 0}
-              className="gap-2 bg-card h-12 transition-all duration-200 hover:scale-105"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Anterior</span>
-              <span className="sm:hidden">Atrás</span>
-            </Button>
-
-            {preguntaActual === preguntas.length - 1 ? (
-              <Button
-                size="lg"
-                onClick={handleFinalizar}
-                disabled={respuestas.length !== preguntas.length}
-                className="col-span-2 gap-2 h-12 transition-all duration-200 hover:scale-105"
-              >
-                <CheckCircle className="w-4 h-4" />
-                Finalizar Prueba
-              </Button>
-            ) : (
-              <Button
-                size="lg"
-                onClick={handleSiguiente}
-                className="col-span-2 gap-2 h-12 transition-all duration-200 hover:scale-105"
-              >
-                <span className="hidden sm:inline">Siguiente</span>
-                <span className="sm:hidden">Continuar</span>
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-
-          {/* ℹ️ ESTADO */}
-          <div className="mt-3 sm:mt-4 text-center shrink-0">
-            {respuestas.length === preguntas.length ? (
-              <p className="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 animate-in fade-in duration-500">
-                ✓ ¡Has respondido todas las preguntas! Puedes finalizar.
-              </p>
-            ) : (
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                {respuestas.length} de {preguntas.length} respondidas
-              </p>
+            {/* Botón ver texto si la pregunta lo requiere */}
+            {preguntas[preguntaActual]?.texto_lectura_id && (
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowTextoDialog(true)}
+                  className="h-8 gap-2 text-primary border-primary/20 hover:border-primary/50"
+                >
+                  <Eye className="w-4 h-4" />
+                  Ver Texto de Lectura
+                </Button>
+              </div>
             )}
           </div>
         </div>
+
+        {/* 🧠 CONTENEDOR DE LA PREGUNTA (SCROLL INTERNO) */}
+        <div
+          key={preguntaActual}
+          className="flex-1 animate-in fade-in slide-in-from-right-4 duration-300 min-h-0 relative"
+        >
+          <QuestionCard
+            pregunta={preguntas[preguntaActual]}
+            numeroActual={preguntaActual + 1}
+            total={preguntas.length}
+            respuestaSeleccionada={respuestaActual}
+            onSeleccionarRespuesta={handleSeleccionarRespuesta}
+            mostrarRespuesta={mostrarRespuesta}
+          />
+        </div>
+
+        {/* 🔽 BOTONES (SIEMPRE ABAJO) */}
+        <div className="mt-4 grid grid-cols-3 gap-3 shrink-0">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={handleAnterior}
+            disabled={preguntaActual === 0}
+            className="gap-2 bg-card h-12 transition-all duration-200 hover:scale-105"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Anterior</span>
+            <span className="sm:hidden">Atrás</span>
+          </Button>
+
+          {preguntaActual === preguntas.length - 1 ? (
+            <Button
+              size="lg"
+              onClick={handleFinalizar}
+              disabled={respuestas.length !== preguntas.length}
+              className="col-span-2 gap-2 h-12 transition-all duration-200 hover:scale-105"
+            >
+              <CheckCircle className="w-4 h-4" />
+              Finalizar Prueba
+            </Button>
+          ) : (
+            <Button
+              size="lg"
+              onClick={handleSiguiente}
+              className="col-span-2 gap-2 h-12 transition-all duration-200 hover:scale-105"
+            >
+              <span className="hidden sm:inline">Siguiente</span>
+              <span className="sm:hidden">Continuar</span>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+
+        {/* ℹ️ ESTADO */}
+        <div className="mt-3 sm:mt-4 text-center shrink-0">
+          {respuestas.length === preguntas.length ? (
+            <p className="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 animate-in fade-in duration-500">
+              ✓ ¡Has respondido todas las preguntas! Puedes finalizar.
+            </p>
+          ) : (
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              {respuestas.length} de {preguntas.length} respondidas
+            </p>
+          )}
+        </div>
       </div>
- 
+
+      {/* AlertDialog para mostrar texto de lectura */}
+      <AlertDialog open={showTextoDialog} onOpenChange={setShowTextoDialog}>
+        <AlertDialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-primary" />
+              {textoLectura?.titulo || "Texto de Lectura"}
+            </AlertDialogTitle>
+            {textoLectura?.fuente && (
+              <AlertDialogDescription>
+                Fuente: {textoLectura.fuente}
+              </AlertDialogDescription>
+            )}
+          </AlertDialogHeader>
+          <div className="flex-1 overflow-y-auto pr-2">
+            {loadingTexto ? (
+              <div className="flex items-center justify-center py-12">
+                <LoadingLottie size={100} />
+              </div>
+            ) : textoLectura ? (
+              <div className="prose prose-base dark:prose-invert max-w-none">
+                <ReactMarkdown
+                  components={{
+                    h2: ({ ...props }) => (
+                      <h2
+                        className="text-2xl font-bold mt-6 mb-4 text-foreground"
+                        {...props}
+                      />
+                    ),
+                    h3: ({ ...props }) => (
+                      <h3
+                        className="text-xl font-semibold mt-5 mb-3 text-foreground"
+                        {...props}
+                      />
+                    ),
+                    p: ({ ...props }) => (
+                      <p
+                        className="mb-4 leading-7 text-foreground/90"
+                        {...props}
+                      />
+                    ),
+                    ul: ({ ...props }) => (
+                      <ul
+                        className="my-4 ml-6 list-disc space-y-2"
+                        {...props}
+                      />
+                    ),
+                    ol: ({ ...props }) => (
+                      <ol
+                        className="my-4 ml-6 list-decimal space-y-2"
+                        {...props}
+                      />
+                    ),
+                    li: ({ ...props }) => (
+                      <li className="leading-7" {...props} />
+                    ),
+                    strong: ({ ...props }) => (
+                      <strong
+                        className="font-semibold text-foreground"
+                        {...props}
+                      />
+                    ),
+                    em: ({ ...props }) => <em className="italic" {...props} />,
+                  }}
+                >
+                  {textoLectura.contenido}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-8">
+                No se pudo cargar el texto.
+              </p>
+            )}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cerrar</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

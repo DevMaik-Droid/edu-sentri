@@ -25,5 +25,6 @@ export function mapPreguntaGeneralRPCtoUI(row: PreguntaGeneralRPC): PreguntaUI {
       nombre: row.componente_nombre,
     },
     num_pregunta: row.num_pregunta ?? undefined,
+    texto_lectura_id: row.texto_lectura_id || null,
   };
 }

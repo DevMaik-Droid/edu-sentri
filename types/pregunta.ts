@@ -54,6 +54,7 @@ export interface PreguntaGeneralRPC {
   componente_nombre: string;
   disciplina_nombre: string;
   num_pregunta: number | null;
+  texto_lectura_id: string | null;
 }
 
 export interface RespuestaUsuario {
