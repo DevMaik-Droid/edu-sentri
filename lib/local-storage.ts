@@ -96,6 +96,7 @@ export interface ActiveSession {
   preguntas: PreguntaUI[];
   respuestas: RespuestaUsuario[];
   preguntaActual: number;
+  timeLeft?: number; // Tiempo restante en segundos
   timestamp: number;
 }
 

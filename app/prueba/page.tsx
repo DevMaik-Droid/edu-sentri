@@ -46,12 +46,20 @@ export default function PruebaPage() {
   const [showTextoDialog, setShowTextoDialog] = useState(false);
   const [loadingTexto, setLoadingTexto] = useState(false);
 
+  // Timer state (2 hours = 7200 seconds)
+  const [timeLeft, setTimeLeft] = useState(7200);
+  const [tiempoSeleccionado, setTiempoSeleccionado] = useState<number | null>(
+    null
+  );
+  const [showTimeSelector, setShowTimeSelector] = useState(false);
+
   // Helper to save session state
   const persistSession = useCallback(
     (
       newPreguntas: PreguntaUI[],
       newRespuestas: RespuestaUsuario[],
-      newIndex: number
+      newIndex: number,
+      newTimeLeft: number
     ) => {
       saveActiveSession({
         tipo,
@@ -59,14 +67,71 @@ export default function PruebaPage() {
         preguntas: newPreguntas,
         respuestas: newRespuestas,
         preguntaActual: newIndex,
+        timeLeft: newTimeLeft,
         timestamp: Date.now(),
       });
     },
     [tipo, area]
   );
 
+  // Save timer every 10 seconds to avoid excessive writing, but save properly on actions
+  useEffect(() => {
+    if (loading || preguntas.length === 0) return;
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        const newValue = prev - 1;
+        if (newValue <= 0) {
+          clearInterval(interval);
+          // Handle timeout if needed, for now just sits at 0
+          return 0;
+        }
+        return newValue;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [loading, preguntas.length]);
+
+  // Persist timer periodically (e.g. every 5 seconds) to avoid data loss on refresh
+  useEffect(() => {
+    if (loading || preguntas.length === 0) return;
+    const timerSave = setInterval(() => {
+      persistSession(preguntas, respuestas, preguntaActual, timeLeft);
+    }, 5000);
+    return () => clearInterval(timerSave);
+  }, [
+    loading,
+    preguntas,
+    respuestas,
+    preguntaActual,
+    timeLeft,
+    persistSession,
+  ]);
+
+  // Format seconds to HH:MM:SS
+  const formatTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h.toString().padStart(2, "0")}:${m
+      .toString()
+      .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
   useEffect(() => {
     const cargarPreguntas = async () => {
+      // Logic for time configuration in Area Test
+      if (
+        tipo === "area" &&
+        !tiempoSeleccionado &&
+        !getActiveSession(tipo, area)
+      ) {
+        setLoading(false);
+        setShowTimeSelector(true);
+        return;
+      }
+
       setLoading(true);
 
       // 1. Intentar cargar sesión activa
@@ -75,6 +140,10 @@ export default function PruebaPage() {
         setPreguntas(session.preguntas);
         setRespuestas(session.respuestas);
         setPreguntaActual(session.preguntaActual);
+        // Load time left if exists, otherwise default
+        if (session.timeLeft !== undefined) {
+          setTimeLeft(session.timeLeft);
+        }
         setLoading(false);
         return;
       }
@@ -105,7 +174,16 @@ export default function PruebaPage() {
 
         setPreguntas(preguntasCargadas);
         // Guardar sesión inicial
-        persistSession(preguntasCargadas, [], 0);
+        let initialTime = 7200; // Default General: 2h
+
+        if (tipo === "demo") {
+          initialTime = 600; // Demo: 10m
+        } else if (tipo === "area") {
+          initialTime = tiempoSeleccionado || 7200;
+        }
+
+        setTimeLeft(initialTime); // Important: Set state
+        persistSession(preguntasCargadas, [], 0, initialTime);
       } catch (error) {
         console.error("Error al cargar preguntas:", error);
       } finally {
@@ -116,7 +194,7 @@ export default function PruebaPage() {
     if (tipo) {
       cargarPreguntas();
     }
-  }, [area, router, tipo, persistSession]);
+  }, [area, router, tipo, persistSession, tiempoSeleccionado]);
 
   // Effect to load text when question changes
   useEffect(() => {
@@ -192,14 +270,14 @@ export default function PruebaPage() {
       respuestaSeleccionada: respuesta,
     });
     setRespuestas(respuestasActualizadas);
-    persistSession(preguntas, respuestasActualizadas, preguntaActual);
+    persistSession(preguntas, respuestasActualizadas, preguntaActual, timeLeft);
   };
 
   const handleAnterior = () => {
     if (preguntaActual > 0) {
       const newIndex = preguntaActual - 1;
       setPreguntaActual(newIndex);
-      persistSession(preguntas, respuestas, newIndex);
+      persistSession(preguntas, respuestas, newIndex, timeLeft);
     }
   };
 
@@ -207,7 +285,7 @@ export default function PruebaPage() {
     if (preguntaActual < preguntas.length - 1) {
       const newIndex = preguntaActual + 1;
       setPreguntaActual(newIndex);
-      persistSession(preguntas, respuestas, newIndex);
+      persistSession(preguntas, respuestas, newIndex, timeLeft);
     }
   };
 
@@ -241,6 +319,13 @@ export default function PruebaPage() {
         {/* 🔝 PROGRESO (FIJO ARRIBA) */}
         <div className="mb-4 sm:mb-6 animate-in fade-in slide-in-from-top-1 duration-500 shrink-0">
           <div className="flex flex-col gap-2">
+            <div
+              className={`text-center font-mono font-bold text-xl ${
+                timeLeft < 300 ? "text-red-500 animate-pulse" : "text-primary"
+              }`}
+            >
+              {formatTime(timeLeft)}
+            </div>
             <ProgressBar actual={preguntaActual + 1} total={preguntas.length} />
 
             {/* Botón ver texto si la pregunta lo requiere */}
@@ -402,6 +487,78 @@ export default function PruebaPage() {
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cerrar</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={showTimeSelector}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Configuración de Tiempo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Selecciona el tiempo límite para esta prueba por área.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <Button
+              onClick={() => {
+                setTiempoSeleccionado(1800);
+                setShowTimeSelector(false);
+              }}
+              variant="outline"
+              className="h-20 flex flex-col gap-1"
+            >
+              <span className="text-xl font-bold">30</span>
+              <span className="text-xs">Minutos</span>
+            </Button>
+            <Button
+              onClick={() => {
+                setTiempoSeleccionado(2400);
+                setShowTimeSelector(false);
+              }}
+              variant="outline"
+              className="h-20 flex flex-col gap-1"
+            >
+              <span className="text-xl font-bold">40</span>
+              <span className="text-xs">Minutos</span>
+            </Button>
+            <Button
+              onClick={() => {
+                setTiempoSeleccionado(3600);
+                setShowTimeSelector(false);
+              }}
+              variant="outline"
+              className="h-20 flex flex-col gap-1"
+            >
+              <span className="text-xl font-bold">1</span>
+              <span className="text-xs">Hora</span>
+            </Button>
+            <Button
+              onClick={() => {
+                setTiempoSeleccionado(5400);
+                setShowTimeSelector(false);
+              }}
+              variant="outline"
+              className="h-20 flex flex-col gap-1"
+            >
+              <span className="text-xl font-bold">1:30</span>
+              <span className="text-xs">Horas</span>
+            </Button>
+            <Button
+              onClick={() => {
+                setTiempoSeleccionado(7200);
+                setShowTimeSelector(false);
+              }}
+              variant="outline"
+              className="h-20 flex flex-col gap-1"
+            >
+              <span className="text-xl font-bold">2</span>
+              <span className="text-xs">Horas</span>
+            </Button>
+          </div>
+          <AlertDialogFooter>
+            <Button variant="ghost" onClick={() => router.push("/")}>
+              Cancelar
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
