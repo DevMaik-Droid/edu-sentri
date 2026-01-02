@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { PreguntaUI } from "@/types/pregunta";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -63,6 +64,25 @@ export function QuestionCard({
     if (onSeleccionarRespuesta) onSeleccionarRespuesta(value);
   };
 
+  const [opcionesBarajadas, setOpcionesBarajadas] = useState<
+    PreguntaUI["opciones"]
+  >(pregunta.opciones);
+
+  useEffect(() => {
+    if (!pregunta.opciones) return;
+
+    const barajar_opciones = async () => {
+      const shuffled = [...pregunta.opciones];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      setOpcionesBarajadas(shuffled);
+    };
+
+    barajar_opciones();
+  }, [pregunta]);
+
   const mostrar = mostrarRespuesta || mostrarCorrecta;
   const esCorrecta =
     respuestaSeleccionada ===
@@ -116,7 +136,7 @@ export function QuestionCard({
             onValueChange={handleChange}
             className="space-y-2 sm:space-y-3"
           >
-            {pregunta.opciones.map((opcion, index) => {
+            {opcionesBarajadas.map((opcion, index) => {
               const seleccion_correcta =
                 respuestaSeleccionada === opcion.clave && opcion.es_correcta;
               const seleccion_incorrecta =
