@@ -304,6 +304,85 @@ export default function PruebaPage() {
     router.push("/resultados");
   };
 
+  if (showTimeSelector) {
+    return (
+      <div className="bg-background h-[calc(100vh-4rem)] flex items-center justify-center">
+        <AlertDialog open={true}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Configuración de Tiempo</AlertDialogTitle>
+              <AlertDialogDescription>
+                Selecciona el tiempo límite para esta prueba.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="grid grid-cols-2 gap-4 py-4">
+              <Button
+                onClick={() => {
+                  setTiempoSeleccionado(1800);
+                  setShowTimeSelector(false);
+                }}
+                variant="outline"
+                className="h-20 flex flex-col gap-1"
+              >
+                <span className="text-xl font-bold">30</span>
+                <span className="text-xs">Minutos</span>
+              </Button>
+              <Button
+                onClick={() => {
+                  setTiempoSeleccionado(2400);
+                  setShowTimeSelector(false);
+                }}
+                variant="outline"
+                className="h-20 flex flex-col gap-1"
+              >
+                <span className="text-xl font-bold">40</span>
+                <span className="text-xs">Minutos</span>
+              </Button>
+              <Button
+                onClick={() => {
+                  setTiempoSeleccionado(3600);
+                  setShowTimeSelector(false);
+                }}
+                variant="outline"
+                className="h-20 flex flex-col gap-1"
+              >
+                <span className="text-xl font-bold">1</span>
+                <span className="text-xs">Hora</span>
+              </Button>
+              <Button
+                onClick={() => {
+                  setTiempoSeleccionado(5400);
+                  setShowTimeSelector(false);
+                }}
+                variant="outline"
+                className="h-20 flex flex-col gap-1"
+              >
+                <span className="text-xl font-bold">1:30</span>
+                <span className="text-xs">Horas</span>
+              </Button>
+              <Button
+                onClick={() => {
+                  setTiempoSeleccionado(7200);
+                  setShowTimeSelector(false);
+                }}
+                variant="outline"
+                className="h-20 flex flex-col gap-1"
+              >
+                <span className="text-xl font-bold">2</span>
+                <span className="text-xs">Horas</span>
+              </Button>
+            </div>
+            <AlertDialogFooter>
+              <Button variant="ghost" onClick={() => router.push("/")}>
+                Cancelar
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    );
+  }
+
   if (loading || preguntas.length === 0) {
     return <LoadingLottie size={150} />;
   }

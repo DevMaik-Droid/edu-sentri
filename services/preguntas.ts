@@ -52,6 +52,7 @@ export async function obtenerPreguntasPorArea(
   disciplina?: string,
   usarNumPregunta: boolean = false
 ): Promise<PreguntaUI[]> {
+
   let query = supabase
     .from("preguntas")
     .select(
@@ -87,6 +88,7 @@ export async function obtenerPreguntasPorArea(
 
   if (error) throw error;
   if (!data) return [];
+
   // 👇 Supabase puede devolver null
   return (data as Pregunta[]).map(mapPreguntaDBtoUI);
 }
