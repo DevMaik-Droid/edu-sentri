@@ -97,3 +97,39 @@ export async function logoutAction(deviceId: string) {
 
   return { success: true };
 }
+
+export async function changePasswordAction(
+  currentPassword: string,
+  newPassword: string
+) {
+  const supabase = await createSupabaseServer();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || !user.email) {
+    return { error: "No hay sesión activa" };
+  }
+
+  // 1. Verificar contraseña actual intentando iniciar sesión
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: currentPassword,
+  });
+
+  if (signInError) {
+    return { error: "La contraseña actual es incorrecta" };
+  }
+
+  // 2. Actualizar contraseña
+  const { error: updateError } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (updateError) {
+    return { error: updateError.message };
+  }
+
+  return { success: true };
+}

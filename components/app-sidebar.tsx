@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   BookOpen,
@@ -9,9 +9,9 @@ import {
   FileText,
   RotateCcw,
   LogOut,
-} from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import {
   Sidebar,
@@ -27,34 +27,51 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from "@/components/ui/sidebar"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import Image from "next/image"
-import { useProfile } from "@/hooks/use-profile"
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import Image from "next/image";
+import { useProfile } from "@/hooks/use-profile";
 
 const areas = [
-  { label: "Comprensión Lectora", value: "comprension-lectora", icon: BookOpen },
+  {
+    label: "Comprensión Lectora",
+    value: "comprension-lectora",
+    icon: BookOpen,
+  },
   { label: "Razonamiento Lógico", value: "razonamiento-logico", icon: Brain },
-  { label: "Conocimientos Generales", value: "conocimientos-generales", icon: Lightbulb },
-  { label: "Habilidades Socioemocionales", value: "habilidades-socioemocionales", icon: Heart },
-]
+  {
+    label: "Conocimientos Generales",
+    value: "conocimientos-generales",
+    icon: Lightbulb,
+  },
+  {
+    label: "Habilidades Socioemocionales",
+    value: "habilidades-socioemocionales",
+    icon: Heart,
+  },
+];
 
 interface AppSidebarProps {
-  onLogout?: () => void
+  onLogout?: () => void;
 }
 
 export function AppSidebar({ onLogout }: AppSidebarProps) {
-
-  const { profile, email } = useProfile()
-  const pathname = usePathname()
-
+  const { profile, email } = useProfile();
+  const pathname = usePathname();
 
   return (
     <Sidebar className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <SidebarHeader className="border-sidebar-border/50">
         <div className="flex items-center justify-center gap-3">
-          <Image src="/logo.png" alt="Logo" width={180} height={180} loading="eager" className="w-32 h-32 sm:w-48 sm:h-48" />
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={180}
+            height={180}
+            loading="eager"
+            className="w-32 h-32 sm:w-48 sm:h-48"
+          />
         </div>
       </SidebarHeader>
 
@@ -108,7 +125,9 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
                 >
                   <Link href="/estudiar/recordar">
                     <Brain className="w-5 h-5" />
-                    <span className="font-medium">Recordar (Active Recall)</span>
+                    <span className="font-medium">
+                      Recordar (Active Recall)
+                    </span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -138,7 +157,10 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname?.startsWith("/prueba") && !pathname?.includes("area")}
+                  isActive={
+                    pathname?.startsWith("/prueba") &&
+                    !pathname?.includes("area")
+                  }
                   className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground py-5"
                 >
                   <Link href="/prueba?tipo=general">
@@ -155,17 +177,24 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
                 </SidebarMenuButton>
                 <SidebarMenuSub>
                   {areas.map((area) => {
-                    const Icon = area.icon
+                    const Icon = area.icon;
                     return (
                       <SidebarMenuSubItem key={area.value}>
-                        <SidebarMenuSubButton asChild className="btn-hover-effect">
-                          <Link href={`/prueba?tipo=area&area=${encodeURIComponent(area.label)}`}>
+                        <SidebarMenuSubButton
+                          asChild
+                          className="btn-hover-effect"
+                        >
+                          <Link
+                            href={`/prueba?tipo=area&area=${encodeURIComponent(
+                              area.label
+                            )}`}
+                          >
                             <Icon className="w-5 h-5" />
                             <span>{area.label}</span>
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
-                    )
+                    );
                   })}
                 </SidebarMenuSub>
               </SidebarMenuItem>
@@ -177,15 +206,23 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
       <SidebarFooter className="border-t border-sidebar-border/50 p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center gap-3 px-3 py-2 mb-2">
+            <Link
+              href="/perfil"
+              className="flex items-center gap-3 px-3 py-2 mb-2 hover:bg-sidebar-accent rounded-md transition-colors cursor-pointer"
+              title="Configuración de seguridad"
+            >
               <Avatar className="w-8 h-8 border border-sidebar-border">
-                <AvatarFallback className="bg-sidebar-accent text-[10px]">{profile?.nombre?.charAt(0)}</AvatarFallback>
+                <AvatarFallback className="bg-sidebar-accent text-[10px]">
+                  {profile?.nombre?.charAt(0)}
+                </AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
                 <span className="text-xs font-semibold">{profile?.nombre}</span>
-                <span className="text-xs text-sidebar-foreground/70">{email}</span>
+                <span className="text-xs text-sidebar-foreground/70">
+                  {email}
+                </span>
               </div>
-            </div>
+            </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <Button
@@ -201,5 +238,5 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
