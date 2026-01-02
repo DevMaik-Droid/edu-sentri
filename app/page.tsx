@@ -7,6 +7,7 @@ import { ArrowRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoginForm } from "@/components/login-form";
 import { createSupabaseServer } from "@/lib/supabase/server";
+import { InstallPrompt } from "@/components/install-prompt";
 
 export default async function HomePage() {
   const supabase = await createSupabaseServer();
@@ -103,6 +104,9 @@ export default async function HomePage() {
               Contáctanos por WhatsApp
             </Button>
           </a>
+
+          {/* INSTALAR APP */}
+          <InstallPrompt />
         </div>
         <div className="mt-12 text-center flex items-center justify-center gap-6 text-xs text-muted-foreground">
           <Link
@@ -119,7 +123,6 @@ export default async function HomePage() {
           </Link>
           <span>&copy; 2025 EduSentri</span>
         </div>
-
       </div>
     </div>
   );
