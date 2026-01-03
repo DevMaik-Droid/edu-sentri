@@ -124,6 +124,7 @@ export default function PracticaAreaContent() {
   // Refs para controlar la lectura secuencial y evitar GC
   const queueRef = useRef<string[]>([]);
   const currentChunkIndexRef = useRef(0);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   // Cargar voces disponibles
   useEffect(() => {
@@ -266,6 +267,7 @@ export default function PracticaAreaContent() {
 
     const chunkText = queueRef.current[currentChunkIndexRef.current];
     const ut = new SpeechSynthesisUtterance(chunkText);
+    utteranceRef.current = ut; // PREVENT GC
 
     // Asignar voz seleccionada (auto)
     if (voices.length > 0) {
@@ -278,6 +280,7 @@ export default function PracticaAreaContent() {
 
     ut.onstart = () => {
       if (!isSpeaking) setIsSpeaking(true);
+      setIsPaused(false);
     };
 
     ut.onend = () => {
@@ -297,10 +300,13 @@ export default function PracticaAreaContent() {
   };
 
   const handleSpeak = () => {
+    // Caso: Reanudar desde pausa (SOFT RESUME para mobile)
     if (isPaused) {
-      window.speechSynthesis.resume();
       setIsPaused(false);
       setIsSpeaking(true);
+      // En lugar de resume(), reiniciamos la lectura desde el índice actual
+      // Esto es MUCHO más robusto en móviles
+      speakNextChunk();
       return;
     }
 
@@ -343,7 +349,8 @@ export default function PracticaAreaContent() {
   };
 
   const handlePause = () => {
-    window.speechSynthesis.pause();
+    // Soft Pause: Cancelar síntesis pero mantener estado 'Pausado' y el índice actual
+    window.speechSynthesis.cancel();
     setIsPaused(true);
     setIsSpeaking(false);
   };
