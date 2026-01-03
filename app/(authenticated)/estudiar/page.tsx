@@ -22,7 +22,7 @@ const areas = [
       "Inferencias y conclusiones",
     ],
     ejemplo: "Lee textos diversos y practica identificando la tesis, argumentos de apoyo y conclusiones del autor.",
-    preguntas: 100,
+    preguntas: 300,
   },
   {
     id: "razonamiento-logico",
@@ -75,7 +75,7 @@ const areas = [
       "Autoconocimiento y autorregulación",
     ],
     ejemplo: "Reflexiona sobre situaciones sociales: ¿Cómo te sentirías en esa situación? ¿Qué harías para ayudar?",
-    preguntas: 5,
+    preguntas: 20,
   },
 ]
 

@@ -9,6 +9,9 @@ import {
   FileText,
   RotateCcw,
   LogOut,
+  Zap,
+  Clock,
+  BookCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -76,7 +79,8 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent className="px-2 space-y-4 scrollbar-hide">
-        <SidebarGroup>
+
+        <SidebarGroup className="m-0">
           <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-bold mb-2 px-4">
             Gestión
           </SidebarGroupLabel>
@@ -97,60 +101,9 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        <SidebarGroup>
+        <SidebarGroup className="m-0">
           <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-bold mb-2 px-4">
-            Aprendizaje
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === "/estudiar"}
-                  className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground py-5"
-                >
-                  <Link href="/estudiar">
-                    <BookOpen className="w-5 h-5" />
-                    <span className="font-medium">Estudio por Área</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === "/estudiar/recordar"}
-                  className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground py-5"
-                >
-                  <Link href="/estudiar/recordar">
-                    <Brain className="w-5 h-5" />
-                    <span className="font-medium">
-                      Recordar (Active Recall)
-                    </span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === "/estudiar/errores"}
-                  className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground py-5"
-                >
-                  <Link href="/estudiar/errores">
-                    <RotateCcw className="w-5 h-5" />
-                    <span className="font-medium">Repaso de Errores</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-bold mb-2 px-4">
-            Evaluación
+            Pruebas
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
@@ -172,7 +125,7 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
 
               <SidebarMenuItem>
                 <SidebarMenuButton className="btn-hover-effect">
-                  <Heart className="w-5 h-5" />
+                  <BookCheck className="w-5 h-5" />
                   <span className="font-medium">Por Área</span>
                 </SidebarMenuButton>
                 <SidebarMenuSub>
@@ -201,6 +154,88 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <SidebarGroup className="m-0">
+          <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-bold mb-2 px-4">
+            Estudio
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-1">
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === "/estudiar"}
+                  className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground py-5"
+                >
+                  <Link href="/estudiar">
+                    <BookOpen className="w-5 h-5" />
+                    <span className="font-medium">Estudio por Área</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup className="m-0">
+          <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-bold mb-2 px-4">
+            Técnicas Estudio
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-1">
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === "/pomodoro"}
+                  className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground py-5"
+                >
+                  <Link href="/pomodoro">
+                    <Clock className="w-5 h-5 text-secondary" />
+                    <div className="flex flex-col items-start leading-none">
+                      <span className="font-medium">Modo Enfoque</span>
+                      <span className="text-[10px] text-sidebar-foreground/50">
+                        Pomodoro + Objetivos
+                      </span>
+                    </div>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === "/estudiar/recordar"}
+                  className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground py-5"
+                >
+                  <Link href="/estudiar/recordar">
+                    <Zap className="w-5 h-5 text-yellow-500" />
+                    <div className="flex flex-col items-start leading-none">
+                      <span className="font-medium">Active Recall</span>
+                      <span className="text-[10px] text-sidebar-foreground/50">
+                        Técnica de Memoria
+                      </span>
+                    </div>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === "/estudiar/errores"}
+                  className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground py-5"
+                >
+                  <Link href="/estudiar/errores">
+                    <RotateCcw className="w-5 h-5" />
+                    <span className="font-medium">Repaso de Errores</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border/50 p-4">
