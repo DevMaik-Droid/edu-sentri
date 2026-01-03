@@ -88,7 +88,7 @@ export default async function HomePage() {
 
           {/* WHATSAPP */}
           <a
-            href="https://wa.me/59169401617?text=Hola,%20quiero%20información%20sobre%20edu-sentri"
+            href="https://wa.me/59173054178?text=Hola,%20quiero%20información%20sobre%20edu-sentri"
             target="_blank"
             rel="noopener noreferrer"
           >
