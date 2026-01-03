@@ -1,18 +1,22 @@
 export type Componente = {
-  id?: string
-  nombre: string
-  descripcion?: string
-}
+  id?: string;
+  nombre: string;
+  descripcion?: string;
+};
 
 export type Disciplina = {
-  id?: string
-  componente_id?: string
-  nombre?: string
-  descripcion?: string
-}
-
+  id?: string;
+  componente_id?: string;
+  nombre?: string;
+  descripcion?: string;
+};
 
 export interface Profile {
-  id?: string
-  nombre: string | null
+  idx: number;
+  id: string;
+  nombre: string;
+  activo: boolean;
+  rol: string;
+  fecha_registro: string;
+  ultimo_acceso: string | null;
 }
