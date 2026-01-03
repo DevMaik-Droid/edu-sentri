@@ -289,7 +289,12 @@ export default function PruebaPage() {
     }
   };
 
+  /* ───────────────── FINALIZAR ───────────────── */
+
+  const [isCalculating, setIsCalculating] = useState(false);
+
   const handleFinalizar = async () => {
+    setIsCalculating(true);
     // Usar localStorage temporalmente para pasar datos a la página de resultados
     localStorage.setItem("temp_preguntas", JSON.stringify(preguntas));
     localStorage.setItem("temp_respuestas", JSON.stringify(respuestas));
@@ -301,8 +306,15 @@ export default function PruebaPage() {
     // Limpiar la sesión activa para que la próxima vez genere una nueva
     clearActiveSession(tipo, area);
 
+    // Small delay to let the user see the loader/message if needed, or just let router push take over.
+    // Router push is async but doesn't return promise of navigation complete usually.
+    // But since we set state, it re-renders loader.
     router.push("/resultados");
   };
+
+  if (isCalculating) {
+    return <LoadingLottie message="Calculando resultados..." />;
+  }
 
   if (showTimeSelector) {
     return (
@@ -393,8 +405,8 @@ export default function PruebaPage() {
   const mostrarRespuesta = respuestaActual !== undefined;
 
   return (
-    <div className="bg-background h-[calc(100vh-4rem)] flex flex-col">
-      <div className="container mx-auto px-4 py-4 sm:py-8 flex flex-col h-full">
+    <div className="bg-background min-h-screen flex flex-col">
+      <div className="container min-h-screen mx-auto px-4 py-4 sm:py-8 flex flex-col h-full">
         {/* 🔝 PROGRESO (FIJO ARRIBA) */}
         <div className="mb-4 sm:mb-6 animate-in fade-in slide-in-from-top-1 duration-500 shrink-0">
           <div className="flex flex-col gap-2">

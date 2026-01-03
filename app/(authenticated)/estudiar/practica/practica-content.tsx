@@ -111,6 +111,7 @@ export default function PracticaAreaContent() {
   const [preguntas, setPreguntas] = useState<PreguntaUI[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [respuestas, setRespuestas] = useState<Record<number, string>>({});
+  const [isCalculating, setIsCalculating] = useState(false);
 
   // Validar área y cargar total
   useEffect(() => {
@@ -391,6 +392,7 @@ export default function PracticaAreaContent() {
   /* ───────────────── FINALIZAR ───────────────── */
 
   const handleFinalizar = () => {
+    setIsCalculating(true);
     // Convertir respuestas al formato esperado
     // RespuestaUsuario[]: { preguntaId: string, respuestaSeleccionada: string }
     const respuestasArray = preguntas
@@ -410,6 +412,10 @@ export default function PracticaAreaContent() {
   };
 
   /* ───────────────── RENDER: CONFIGURACIÓN ───────────────── */
+
+  if (isCalculating) {
+    return <LoadingLottie message="Calculando resultados..." />;
+  }
 
   if (!configurado) {
     if (cargando || cargandoTotal) return <LoadingLottie size={150} />;
@@ -778,150 +784,152 @@ export default function PracticaAreaContent() {
 
   return (
     <ClientLayout>
-    <div className="bg-background h-full">
-      <div className="container mx-auto px-4 py-2 sm:py-8 h-full flex flex-col">
-        {/* PROGRESO */}
-        <div className="mb-4 sm:mb-6 shrink-0">
-          <Progress value={progreso} className="h-2" />
-          <div className="flex justify-between mt-1 text-sm text-muted-foreground items-center">
-            <span>Pregunta {currentIndex + 1}</span>
-            {isComprensionLectora && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowTextoDialog(true)}
-                className="h-6 gap-1.5 text-xs font-medium text-primary hover:text-primary/80"
-              >
-                <Eye className="w-3 h-3" />
-                Ver Texto
-              </Button>
-            )}
-            <span>Total {preguntas.length}</span>
-          </div>
-        </div>
-
-        {/* PREGUNTA (SCROLL INTERNO) */}
-        <div
-          key={currentIndex}
-          className="flex-1 min-h-0 animate-in fade-in slide-in-from-right-4 duration-300"
-        >
-          <QuestionCard
-            numeroActual={currentIndex + 1}
-            total={preguntas.length}
-            pregunta={preguntaActual}
-            respuestaSeleccionada={respuestas[currentIndex]}
-            onRespuesta={handleRespuesta}
-            mostrarCorrecta={!!respuestas[currentIndex]} // Feedback inmediato en práctica
-          />
-        </div>
-
-        {/* BOTONES (SIEMPRE ABAJO) */}
-        <div className="grid grid-cols-3 gap-3 mt-4 shrink-0">
-          <Button
-            variant="outline"
-            onClick={handleAnterior}
-            disabled={currentIndex === 0}
-            className="h-12 transition-all duration-200 hover:scale-102 gap-3 hover:bg-primary"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Atrás
-          </Button>
-
-          <Button
-            onClick={handleSiguiente}
-            disabled={!respuestas[currentIndex]}
-            className="col-span-2 transition-all duration-200 hover:scale-102 gap-3 h-12 hover:bg-primary"
-          >
-            {currentIndex === preguntas.length - 1 ? (
-              <>
-                <CheckCircle className="w-4 h-4" />
-                {isComprensionLectora &&
-                indiceTextoActual < textosSeleccionados.length - 1
-                  ? "Siguiente Texto"
-                  : "Finalizar Práctica"}
-              </>
-            ) : (
-              <>
-                Siguiente
-                <ChevronRight className="w-4 h-4" />
-              </>
-            )}
-          </Button>
-        </div>
-
-        {/* ESTADO */}
-        <div className="mt-3 text-center text-sm text-muted-foreground shrink-0">
-          {Object.keys(respuestas).length} de {preguntas.length} respondidas
-        </div>
-      </div>
-
-      {/* AlertDialog para mostrar texto de lectura */}
-      <AlertDialog open={showTextoDialog} onOpenChange={setShowTextoDialog}>
-        <AlertDialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-primary" />
-              {textoActual?.titulo || "Texto de Lectura"}
-            </AlertDialogTitle>
-          </AlertDialogHeader>
-          <div className="flex-1 overflow-y-auto pr-2">
-            {textoActual && (
-              <div className="prose prose-base dark:prose-invert max-w-none">
-                <ReactMarkdown
-                  components={{
-                    h2: ({ ...props }) => (
-                      <h2
-                        className="text-2xl font-bold mt-6 mb-4 text-foreground"
-                        {...props}
-                      />
-                    ),
-                    h3: ({ ...props }) => (
-                      <h3
-                        className="text-xl font-semibold mt-5 mb-3 text-foreground"
-                        {...props}
-                      />
-                    ),
-                    p: ({ ...props }) => (
-                      <p
-                        className="mb-4 leading-7 text-foreground/90"
-                        {...props}
-                      />
-                    ),
-                    ul: ({ ...props }) => (
-                      <ul
-                        className="my-4 ml-6 list-disc space-y-2"
-                        {...props}
-                      />
-                    ),
-                    ol: ({ ...props }) => (
-                      <ol
-                        className="my-4 ml-6 list-decimal space-y-2"
-                        {...props}
-                      />
-                    ),
-                    li: ({ ...props }) => (
-                      <li className="leading-7" {...props} />
-                    ),
-                    strong: ({ ...props }) => (
-                      <strong
-                        className="font-semibold text-foreground"
-                        {...props}
-                      />
-                    ),
-                    em: ({ ...props }) => <em className="italic" {...props} />,
-                  }}
+      <div className="bg-background h-full">
+        <div className="container mx-auto px-4 py-2 sm:py-8 h-full flex flex-col">
+          {/* PROGRESO */}
+          <div className="mb-4 sm:mb-6 shrink-0">
+            <Progress value={progreso} className="h-2" />
+            <div className="flex justify-between mt-1 text-sm text-muted-foreground items-center">
+              <span>Pregunta {currentIndex + 1}</span>
+              {isComprensionLectora && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowTextoDialog(true)}
+                  className="h-6 gap-1.5 text-xs font-medium text-primary hover:text-primary/80"
                 >
-                  {textoActual.contenido}
-                </ReactMarkdown>
-              </div>
-            )}
+                  <Eye className="w-3 h-3" />
+                  Ver Texto
+                </Button>
+              )}
+              <span>Total {preguntas.length}</span>
+            </div>
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cerrar</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+
+          {/* PREGUNTA (SCROLL INTERNO) */}
+          <div
+            key={currentIndex}
+            className="flex-1 min-h-0 animate-in fade-in slide-in-from-right-4 duration-300"
+          >
+            <QuestionCard
+              numeroActual={currentIndex + 1}
+              total={preguntas.length}
+              pregunta={preguntaActual}
+              respuestaSeleccionada={respuestas[currentIndex]}
+              onRespuesta={handleRespuesta}
+              mostrarCorrecta={!!respuestas[currentIndex]} // Feedback inmediato en práctica
+            />
+          </div>
+
+          {/* BOTONES (SIEMPRE ABAJO) */}
+          <div className="grid grid-cols-3 gap-3 mt-4 shrink-0">
+            <Button
+              variant="outline"
+              onClick={handleAnterior}
+              disabled={currentIndex === 0}
+              className="h-12 transition-all duration-200 hover:scale-102 gap-3 hover:bg-primary"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Atrás
+            </Button>
+
+            <Button
+              onClick={handleSiguiente}
+              disabled={!respuestas[currentIndex]}
+              className="col-span-2 transition-all duration-200 hover:scale-102 gap-3 h-12 hover:bg-primary"
+            >
+              {currentIndex === preguntas.length - 1 ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  {isComprensionLectora &&
+                  indiceTextoActual < textosSeleccionados.length - 1
+                    ? "Siguiente Texto"
+                    : "Finalizar Práctica"}
+                </>
+              ) : (
+                <>
+                  Siguiente
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* ESTADO */}
+          <div className="mt-3 text-center text-sm text-muted-foreground shrink-0">
+            {Object.keys(respuestas).length} de {preguntas.length} respondidas
+          </div>
+        </div>
+
+        {/* AlertDialog para mostrar texto de lectura */}
+        <AlertDialog open={showTextoDialog} onOpenChange={setShowTextoDialog}>
+          <AlertDialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-primary" />
+                {textoActual?.titulo || "Texto de Lectura"}
+              </AlertDialogTitle>
+            </AlertDialogHeader>
+            <div className="flex-1 overflow-y-auto pr-2">
+              {textoActual && (
+                <div className="prose prose-base dark:prose-invert max-w-none">
+                  <ReactMarkdown
+                    components={{
+                      h2: ({ ...props }) => (
+                        <h2
+                          className="text-2xl font-bold mt-6 mb-4 text-foreground"
+                          {...props}
+                        />
+                      ),
+                      h3: ({ ...props }) => (
+                        <h3
+                          className="text-xl font-semibold mt-5 mb-3 text-foreground"
+                          {...props}
+                        />
+                      ),
+                      p: ({ ...props }) => (
+                        <p
+                          className="mb-4 leading-7 text-foreground/90"
+                          {...props}
+                        />
+                      ),
+                      ul: ({ ...props }) => (
+                        <ul
+                          className="my-4 ml-6 list-disc space-y-2"
+                          {...props}
+                        />
+                      ),
+                      ol: ({ ...props }) => (
+                        <ol
+                          className="my-4 ml-6 list-decimal space-y-2"
+                          {...props}
+                        />
+                      ),
+                      li: ({ ...props }) => (
+                        <li className="leading-7" {...props} />
+                      ),
+                      strong: ({ ...props }) => (
+                        <strong
+                          className="font-semibold text-foreground"
+                          {...props}
+                        />
+                      ),
+                      em: ({ ...props }) => (
+                        <em className="italic" {...props} />
+                      ),
+                    }}
+                  >
+                    {textoActual.contenido}
+                  </ReactMarkdown>
+                </div>
+              )}
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cerrar</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </ClientLayout>
   );
 }

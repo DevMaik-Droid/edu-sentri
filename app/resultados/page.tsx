@@ -26,6 +26,10 @@ export default function ResultadosPage() {
   const router = useRouter();
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [retryConfig, setRetryConfig] = useState<{
+    tipo: string;
+    area?: string | null;
+  }>({ tipo: "general" });
 
   useEffect(() => {
     // Obtener datos desde localStorage temporal
@@ -33,6 +37,8 @@ export default function ResultadosPage() {
     const respuestasStr = localStorage.getItem("temp_respuestas");
     const tipoPrueba = localStorage.getItem("temp_tipo") || "general";
     const areaPrueba = localStorage.getItem("temp_area") || undefined;
+
+    setRetryConfig({ tipo: tipoPrueba, area: areaPrueba || null });
 
     if (!preguntasStr || !respuestasStr) {
       router.push("/");
@@ -148,11 +154,102 @@ export default function ResultadosPage() {
     );
   }
 
-  const esBuenPuntaje = resultado.porcentaje >= 70;
-  const esExcelentePuntaje = resultado.porcentaje >= 90;
+  const getFeedback = (porcentaje: number) => {
+    if (porcentaje >= 80) {
+      return {
+        title: "¡Impresionante!",
+        message:
+          "Has demostrado un dominio excepcional del contenido. ¡Sigue así, experto!",
+        color: "text-yellow-500",
+        bgColor: "bg-yellow-500/10",
+        borderColor: "border-yellow-200 dark:border-yellow-800",
+        icon: Sparkles,
+      };
+    } else if (porcentaje >= 60) {
+      return {
+        title: "¡Buen Trabajo!",
+        message:
+          "Vas por buen camino, pero aún hay margen de mejora. ¡Tú puedes!",
+        color: "text-green-500",
+        bgColor: "bg-green-500/10",
+        borderColor: "border-green-200 dark:border-green-800",
+        icon: CheckCircle2,
+      };
+    } else {
+      return {
+        title: "¡No te rindas!",
+        message:
+          "El aprendizaje es un proceso. Revisa tus errores y vuelve a intentarlo.",
+        color: "text-orange-500",
+        bgColor: "bg-orange-500/10",
+        borderColor: "border-orange-200 dark:border-orange-800",
+        icon: TrendingUp,
+      };
+    }
+  };
+
+  const feedback = resultado ? getFeedback(resultado.porcentaje) : null;
+  const FeedbackIcon = feedback?.icon || Home;
+
+  // Circular Progress Component
+  const CircularProgress = ({
+    value,
+    size = 180,
+    strokeWidth = 15,
+    colorClass = "text-primary",
+  }: {
+    value: number;
+    size?: number;
+    strokeWidth?: number;
+    colorClass?: string;
+  }) => {
+    const radius = (size - strokeWidth) / 2;
+    const circumference = radius * 2 * Math.PI;
+    const offset = circumference - (value / 100) * circumference;
+
+    return (
+      <div
+        className="relative flex items-center justify-center"
+        style={{ width: size, height: size }}
+      >
+        <svg className="transform -rotate-90 w-full h-full">
+          <circle
+            className="text-muted/20"
+            strokeWidth={strokeWidth}
+            stroke="currentColor"
+            fill="transparent"
+            r={radius}
+            cx={size / 2}
+            cy={size / 2}
+          />
+          <circle
+            className={`${colorClass} transition-all duration-1000 ease-out`}
+            strokeWidth={strokeWidth}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            stroke="currentColor"
+            fill="transparent"
+            r={radius}
+            cx={size / 2}
+            cy={size / 2}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center animate-in zoom-in duration-500 delay-300">
+          <span className={`text-4xl sm:text-5xl font-bold ${colorClass}`}>
+            {Math.round(value)}%
+          </span>
+          <span className="text-xs sm:text-sm text-muted-foreground uppercase tracking-wider font-semibold mt-1">
+            Puntuación
+          </span>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20 py-6 sm:py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-background py-8 sm:py-12 relative overflow-hidden">
+      {/* Confetti container (existing logic) */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50">
           {[...Array(50)].map((_, i) => (
@@ -173,119 +270,112 @@ export default function ResultadosPage() {
       )}
 
       <div className="container mx-auto px-4 max-w-4xl relative z-10">
-        <div className="text-center mb-8 sm:mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
-          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 mb-4 animate-in zoom-in duration-500 delay-200">
-            {esExcelentePuntaje ? (
-              <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-primary animate-pulse" />
-            ) : esBuenPuntaje ? (
-              <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
-            ) : (
-              <TrendingUp className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground" />
-            )}
-          </div>
-          <h1 className="text-2xl sm:text-4xl font-bold mb-3 sm:mb-4 text-balance">
-            {esExcelentePuntaje
-              ? "¡Excelente Trabajo!"
-              : esBuenPuntaje
-              ? "¡Buen Trabajo!"
-              : "Resultados de tu Prueba"}
-          </h1>
-          <p className="text-sm sm:text-lg text-muted-foreground">
-            {esExcelentePuntaje
-              ? "Has demostrado un dominio excepcional del contenido"
-              : esBuenPuntaje
-              ? "Has completado la prueba con buenos resultados"
-              : "Sigue practicando para mejorar tus resultados"}
-          </p>
+        <div className="flex flex-col items-center justify-center mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
+          {/* Main Score Card */}
+          <Card
+            className={`w-full max-w-2xl border-2 shadow-xl ${feedback?.borderColor} bg-card/50 backdrop-blur-sm overflow-hidden`}
+          >
+            <div
+              className={`h-2 w-full ${feedback?.bgColor.replace("/10", "")}`}
+            />
+            <CardContent className="pt-8 pb-8 flex flex-col items-center text-center gap-6">
+              <div
+                className={`p-4 rounded-full ${feedback?.bgColor} mb-2 animate-bounce`}
+              >
+                <FeedbackIcon className={`w-12 h-12 ${feedback?.color}`} />
+              </div>
+
+              <div className="space-y-2">
+                <h1
+                  className={`text-3xl sm:text-4xl font-bold ${feedback?.color}`}
+                >
+                  {feedback?.title}
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-md mx-auto text-balance leading-relaxed">
+                  {feedback?.message}
+                </p>
+              </div>
+
+              <div className="py-2">
+                <CircularProgress
+                  value={resultado.porcentaje}
+                  colorClass={feedback?.color || "text-primary"}
+                />
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-3 gap-4 w-full max-w-lg mt-4">
+                <div className="flex flex-col items-center p-3 rounded-lg bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/20">
+                  <span className="text-2xl font-bold text-green-600">
+                    {resultado.correctas}
+                  </span>
+                  <span className="text-xs font-medium text-green-700/70 dark:text-green-400">
+                    Correctas
+                  </span>
+                </div>
+                <div className="flex flex-col items-center p-3 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
+                  <span className="text-2xl font-bold text-red-600">
+                    {resultado.incorrectas}
+                  </span>
+                  <span className="text-xs font-medium text-red-700/70 dark:text-red-400">
+                    Incorrectas
+                  </span>
+                </div>
+                <div className="flex flex-col items-center p-3 rounded-lg bg-slate-50 dark:bg-slate-900/20 border border-slate-100 dark:border-slate-800">
+                  <span className="text-2xl font-bold text-foreground">
+                    {resultado.totalPreguntas}
+                  </span>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Total
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <Card className="mb-6 sm:mb-8 border-2 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-              Resumen General
+        {/* Areas Breakdown */}
+        <Card className="mb-8 border shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+          <CardHeader className="border-b bg-muted/20">
+            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              Desglose por Área
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4 sm:space-y-6">
-              <div className="text-center py-4 sm:py-6 relative">
-                <div className="absolute inset-0 bg-linear-to-r from-primary/5 via-accent/5 to-primary/5 rounded-lg animate-pulse" />
-                <p className="text-5xl sm:text-7xl font-bold mb-2 bg-linear-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-in zoom-in duration-500 delay-500 relative z-10">
-                  {resultado.porcentaje.toFixed(1)}%
-                </p>
-                <p className="text-base sm:text-lg text-muted-foreground relative z-10">
-                  Porcentaje de Aciertos
-                </p>
-              </div>
-
-              <div className="grid gap-3 sm:gap-4 grid-cols-1 xs:grid-cols-3">
-                <Card className="transform transition-all duration-300 hover:scale-105 hover:shadow-md">
-                  <CardContent className="pt-4 sm:pt-6 text-center">
-                    <p className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-                      {resultado.totalPreguntas}
-                    </p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      Total de Preguntas
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card className="bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
-                  <CardContent className="pt-4 sm:pt-6 text-center">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
-                      <p className="text-2xl sm:text-3xl font-bold text-green-600">
-                        {resultado.correctas}
-                      </p>
-                    </div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      Correctas
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card className="bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800 xs:col-span-1 col-span-1 transform transition-all duration-300 hover:scale-105 hover:shadow-md">
-                  <CardContent className="pt-4 sm:pt-6 text-center">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
-                      <p className="text-2xl sm:text-3xl font-bold text-red-600">
-                        {resultado.incorrectas}
-                      </p>
-                    </div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      Incorrectas
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="mb-6 sm:mb-8 shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-xl">
-              Resultados por Área
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 sm:space-y-6">
+          <CardContent className="pt-6">
+            <div className="space-y-5">
               {resultado.porArea.map((area, index) => (
-                <div
-                  key={area.area}
-                  className="space-y-2 animate-in fade-in slide-in-from-left-2 duration-500"
-                  style={{ animationDelay: `${700 + index * 100}ms` }}
-                >
-                  <div className="flex justify-between items-center gap-2">
-                    <span className="font-medium text-sm sm:text-base truncate flex-1">
+                <div key={area.area} className="space-y-2">
+                  <div className="flex justify-between items-end gap-4">
+                    <span className="font-medium text-sm sm:text-base">
                       {area.area}
                     </span>
-                    <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap font-semibold">
-                      {area.correctas}/{area.total} (
-                      {area.porcentaje.toFixed(1)}%)
-                    </span>
+                    <div className="text-right">
+                      <span
+                        className={`text-sm font-bold ${
+                          area.porcentaje >= 80
+                            ? "text-green-600"
+                            : area.porcentaje >= 60
+                            ? "text-yellow-600"
+                            : "text-orange-600"
+                        }`}
+                      >
+                        {area.porcentaje.toFixed(0)}%
+                      </span>
+                      <span className="text-xs text-muted-foreground ml-1">
+                        ({area.correctas}/{area.total})
+                      </span>
+                    </div>
                   </div>
                   <Progress
                     value={area.porcentaje}
-                    className="h-2 sm:h-3 transition-all duration-1000"
+                    className="h-2.5 bg-muted"
+                    // Colorize progress bar based on score using inline style or utility override if allowed by component props
+                    // Shadcn Progress usually uses bg-primary for indicator.
+                    // To customize color per bar, we might need a custom class or style on the indicator if accessible,
+                    // or just wrap it.
+                    // Assuming default Progress, it's primary color.
+                    // We can try to use indicatorClassName if available, or just standard.
                   />
                 </div>
               ))}
@@ -293,18 +383,28 @@ export default function ResultadosPage() {
           </CardContent>
         </Card>
 
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-700">
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300">
           <Button
             onClick={() => router.push("/dashboard")}
-            className="gap-2 sm:h-auto flex-1 transition-all duration-200 hover:scale-105"
+            variant="ghost"
+            className="w-full sm:w-auto gap-2 hover:bg-muted"
           >
             <Home className="w-4 h-4" />
             Volver al Inicio
           </Button>
           <Button
-            variant="outline"
-            onClick={() => router.push("/prueba?tipo=general")}
-            className="gap-2 sm:h-auto flex-1 transition-all duration-200 hover:scale-105"
+            onClick={() =>
+              router.push(
+                `/prueba?tipo=${retryConfig.tipo}${
+                  retryConfig.area
+                    ? `&area=${encodeURIComponent(retryConfig.area)}`
+                    : ""
+                }`
+              )
+            }
+            size="lg"
+            className="w-full sm:w-auto gap-2 shadow-lg hover:scale-105 transition-transform"
           >
             <RotateCcw className="w-4 h-4" />
             Nueva Prueba

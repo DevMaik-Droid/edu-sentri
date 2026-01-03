@@ -52,7 +52,6 @@ export async function obtenerPreguntasPorArea(
   disciplina?: string,
   usarNumPregunta: boolean = false
 ): Promise<PreguntaUI[]> {
-
   let query = supabase
     .from("preguntas")
     .select(
@@ -65,7 +64,8 @@ export async function obtenerPreguntasPorArea(
      activa,
      componentes!inner(nombre),
      disciplinas${disciplina ? "!inner" : ""}(nombre),
-     num_pregunta
+     num_pregunta,
+     image
     `
     )
     .eq("activa", true)
@@ -196,4 +196,12 @@ export async function obtenerPreguntasPorTextoLectura(
   if (!data) return [];
 
   return (data as Pregunta[]).map(mapPreguntaDBtoUI);
+}
+
+export function getImagenPregunta(nombre?: string | null) {
+  if (!nombre) return null;
+
+  const { data } = supabase.storage.from("rml").getPublicUrl(nombre);
+
+  return data.publicUrl;
 }

@@ -2,10 +2,29 @@
 
 import { useEffect, useState } from "react";
 import type { PreguntaUI } from "@/types/pregunta";
+import { getImagenPregunta } from "@/services/preguntas";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { CheckCircle2, XCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  Eye,
+  Plus,
+  Minus,
+  RotateCcw,
+} from "lucide-react";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 interface QuestionCardProps {
   pregunta: PreguntaUI;
@@ -67,6 +86,8 @@ export function QuestionCard({
   const [opcionesBarajadas, setOpcionesBarajadas] = useState<
     PreguntaUI["opciones"]
   >(pregunta.opciones);
+  const [showImageDialog, setShowImageDialog] = useState(false);
+
 
   useEffect(() => {
     if (!pregunta.opciones) return;
@@ -193,18 +214,104 @@ export function QuestionCard({
             </div>
           )}
 
-          {mostrar && pregunta.sustento && (
-            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500 rounded animate-in fade-in slide-in-from-top-2 duration-300">
-              <p className="text-sm font-medium text-blue-800 dark:text-blue-400 mb-1">
-                Explicación:
-              </p>
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                {pregunta.sustento}
-              </p>
+          {mostrar && (
+            <div className="mt-4 space-y-4">
+              {pregunta.sustento && (
+                <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500 rounded animate-in fade-in slide-in-from-top-2 duration-300">
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-400 mb-1">
+                    Explicación:
+                  </p>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    {pregunta.sustento}
+                  </p>
+                </div>
+              )}
+
+              {/* Botón para ver imagen si existe */}
+              {pregunta.image && (
+                <div className="flex justify-start animate-in fade-in slide-in-from-top-2 duration-300">
+                  <Button
+                    variant="outline"
+                    className="gap-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+                    onClick={() => setShowImageDialog(true)}
+                  >
+                    <Eye className="w-4 h-4" />
+                    Ver Explicacion
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
       </div>
+
+      {/* Dialogo Imagen */}
+      <AlertDialog open={showImageDialog} onOpenChange={setShowImageDialog}>
+        <AlertDialogHeader>
+          <AlertDialogTitle></AlertDialogTitle>
+        </AlertDialogHeader>
+        <AlertDialogContent className="max-w-3xl">
+          <div className="flex flex-col items-center justify-center p-0 h-[80vh] w-full bg-slate-50/50 dark:bg-slate-900/50 rounded-md overflow-hidden relative">
+            <TransformWrapper
+              initialScale={1}
+              minScale={0.5}
+              maxScale={4}
+              centerOnInit
+            >
+              {({ zoomIn, zoomOut, resetTransform }) => (
+                <>
+                  <div className="absolute top-4 right-4 z-50 flex gap-2 bg-background/80 backdrop-blur-sm p-1 rounded-md border shadow-sm">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => zoomIn()}
+                      title="Acercar"
+                      className="h-8 w-8 hover:bg-slate-200 dark:hover:bg-slate-800"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => zoomOut()}
+                      title="Alejar"
+                      className="h-8 w-8 hover:bg-slate-200 dark:hover:bg-slate-800"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => resetTransform()}
+                      title="Restablecer"
+                      className="h-8 w-8 hover:bg-slate-200 dark:hover:bg-slate-800"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <TransformComponent
+                    wrapperClass="!w-full !h-full flex items-center justify-center"
+                    contentClass="!w-full !h-full flex items-center justify-center"
+                  >
+                    <Image
+                      src={getImagenPregunta(pregunta.image) || ""}
+                      alt="Solución Gráfica"
+                      width={1200}
+                      height={1200}
+                      className="max-w-none object-contain h-auto w-auto max-h-full"
+                      style={{ maxWidth: "100%", maxHeight: "100%" }}
+                    />
+                  </TransformComponent>
+                </>
+              )}
+            </TransformWrapper>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cerrar</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

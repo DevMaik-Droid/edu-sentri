@@ -20,6 +20,7 @@ export interface Pregunta {
   componentes?: Componente[];
   disciplinas?: Disciplina[];
   num_pregunta?: number;
+  image?: string;
 }
 
 // types/pregunta.ui.ts
@@ -38,6 +39,7 @@ export interface PreguntaUI {
   disciplinas?: Disciplina | null;
   num_pregunta?: number;
   texto_lectura_id?: string | null;
+  image?: string | null;
 }
 
 export interface PreguntaGeneralRPC {
