@@ -787,7 +787,10 @@ export default function PracticaAreaContent() {
               </Button>
 
               <Button
-                onClick={handleComenzarPreguntas}
+                onClick={() => {
+                  handleComenzarPreguntas();
+                  handleStop();
+                }}
                 disabled={cargando}
                 className="gap-2"
               >
@@ -1068,7 +1071,7 @@ export default function PracticaAreaContent() {
 
         {/* AlertDialog para mostrar texto de lectura */}
         <AlertDialog open={showTextoDialog} onOpenChange={setShowTextoDialog}>
-          <AlertDialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+          <AlertDialogContent className="max-h-[90vh] min-w-[60vw] max-w-[90vw] overflow-hidden flex flex-col">
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-primary" />
