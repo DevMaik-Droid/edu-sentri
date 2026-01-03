@@ -51,7 +51,6 @@ import {
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
@@ -119,9 +118,7 @@ export default function PracticaAreaContent() {
   // Estados para TTS
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(
-    null
-  );
+
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
   // Refs para controlar la lectura secuencial y evitar GC
@@ -296,7 +293,6 @@ export default function PracticaAreaContent() {
       speakNextChunk();
     };
 
-    setUtterance(ut);
     window.speechSynthesis.speak(ut);
   };
 

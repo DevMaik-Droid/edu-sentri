@@ -87,23 +87,42 @@ export default async function HomePage() {
           </Link>
 
           {/* WHATSAPP */}
-          <a
-            href="https://wa.me/59169401617?text=Hola,%20quiero%20información%20sobre%20edu-sentri"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button
-              className="
+          <div className="flex gap-2 justify-center w-full">
+            <a
+              href="https://wa.me/59175980130?text=Hola,%20quiero%20información%20sobre%20edu-sentri"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button
+                className="
               w-full gap-2
               bg-green-600/90 hover:bg-green-600
               text-white
               transition-all
             "
+              >
+                <MessageCircle className="w-4 h-4" />
+                Contáctanos #1
+              </Button>
+            </a>
+            <a
+              href="https://wa.me/59169401617?text=Hola,%20quiero%20información%20sobre%20edu-sentri"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <MessageCircle className="w-4 h-4" />
-              Contáctanos por WhatsApp
-            </Button>
-          </a>
+              <Button
+                className="
+              w-full gap-2
+              bg-green-600/90 hover:bg-green-600
+              text-white
+              transition-all
+            "
+              >
+                <MessageCircle className="w-4 h-4" />
+                Contáctanos #2
+              </Button>
+            </a>
+          </div>
 
           {/* INSTALAR APP */}
           <InstallPrompt />
