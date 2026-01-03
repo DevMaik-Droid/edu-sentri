@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Card,
@@ -24,6 +24,9 @@ import {
   BookOpen,
   FileText,
   Eye,
+  Volume2,
+  Pause,
+  Square,
 } from "lucide-react";
 import {
   Select,
@@ -113,6 +116,56 @@ export default function PracticaAreaContent() {
   const [respuestas, setRespuestas] = useState<Record<number, string>>({});
   const [isCalculating, setIsCalculating] = useState(false);
 
+  // Estados para TTS
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(
+    null
+  );
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  // Refs para controlar la lectura secuencial y evitar GC
+  const queueRef = useRef<string[]>([]);
+  const currentChunkIndexRef = useRef(0);
+
+  // Cargar voces disponibles
+  useEffect(() => {
+    const updateVoices = () => {
+      const allVoices = window.speechSynthesis.getVoices();
+      // Filtrar voces en español
+      const esVoices = allVoices.filter((v) => v.lang.startsWith("es"));
+
+      // Preferencias: Google, Microsoft, luego el resto
+      const sortedVoices = esVoices.sort((a, b) => {
+        const aScore = a.name.includes("Google")
+          ? 2
+          : a.name.includes("Microsoft")
+          ? 1
+          : 0;
+        const bScore = b.name.includes("Google")
+          ? 2
+          : b.name.includes("Microsoft")
+          ? 1
+          : 0;
+        return bScore - aScore;
+      });
+
+      // Limitar a 5 voces
+      const limitedVoices = sortedVoices.slice(0, 5);
+      console.log("Voces cargadas (filtradas):", limitedVoices.length);
+      setVoices(limitedVoices);
+    };
+
+    updateVoices();
+
+    // Chrome carga voces asíncronamente
+    window.speechSynthesis.onvoiceschanged = updateVoices;
+
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, []);
+
   // Validar área y cargar total
   useEffect(() => {
     if (!area) {
@@ -193,7 +246,117 @@ export default function PracticaAreaContent() {
     fetchTotal();
   }, [area, disciplinaSeleccionada, isComprensionLectora]);
 
+  // Cleanup speech synthesis on unmount
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis.cancel();
+    };
+  }, []);
+
   /* ───────────────── INICIO ───────────────── */
+
+  // Función recursiva para leer chunk por chunk (Daisy Chain)
+  const speakNextChunk = () => {
+    if (
+      queueRef.current.length === 0 ||
+      currentChunkIndexRef.current >= queueRef.current.length
+    ) {
+      setIsSpeaking(false);
+      setIsPaused(false);
+      console.log("Lectura completada (todos los chunks).");
+      return;
+    }
+
+    const chunkText = queueRef.current[currentChunkIndexRef.current];
+    const ut = new SpeechSynthesisUtterance(chunkText);
+
+    // Asignar voz seleccionada (auto)
+    if (voices.length > 0) {
+      ut.voice = voices[0];
+    }
+
+    ut.lang = "es-ES";
+    ut.rate = 1.05; // Un poco más fluido
+    ut.pitch = 1;
+
+    ut.onstart = () => {
+      if (!isSpeaking) setIsSpeaking(true);
+    };
+
+    ut.onend = () => {
+      currentChunkIndexRef.current++;
+      speakNextChunk();
+    };
+
+    ut.onerror = (e) => {
+      // Ignorar errores por interrupción manual
+      if (e.error === "interrupted" || e.error === "canceled") return;
+      console.error("Error chunk:", e);
+      currentChunkIndexRef.current++;
+      speakNextChunk();
+    };
+
+    setUtterance(ut);
+    window.speechSynthesis.speak(ut);
+  };
+
+  const handleSpeak = () => {
+    if (isPaused) {
+      window.speechSynthesis.resume();
+      setIsPaused(false);
+      setIsSpeaking(true);
+      return;
+    }
+
+    if (isSpeaking) return;
+
+    if (!textoActual?.contenido) {
+      console.warn("No hay contenido para leer");
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    queueRef.current = [];
+    currentChunkIndexRef.current = 0;
+
+    // Procesar texto
+    // Procesar texto con Normalización PRO
+    const normalizarTexto = (texto: string) => {
+      return texto
+        .replace(/[#*`_\[\]]/g, "") // Limpiar MD
+        .replace(/\n+/g, " ") // elimina saltos de línea
+        .replace(/\s+/g, " ") // elimina espacios múltiples
+        // Elimina paréntesis y CUALQUIER coma dentro de ellos para evitar pausas
+        .replace(/\((.*?)\)/g, (_, content) => content.replace(/,/g, "")) 
+        .replace(/[:;]/g, ",") // : ; -> , para pausa natural
+        .trim();
+    };
+
+    const cleanText = normalizarTexto(textoActual.contenido);
+
+    // Dividir manteniendo la puntuación para la entonación correcta (PRO)
+    // Regex: Segmentos delimitados por , . ; : ! ?
+    // Esto crea pausas naturales en comas y pausas largas en puntos
+    const chunks = cleanText.match(/[^,.;:!?]+[,.;:!?]?/g) || [cleanText];
+    queueRef.current = chunks;
+
+    console.log(`Iniciando lectura secuencial. ${chunks.length} oraciones.`);
+    speakNextChunk();
+  };
+
+  const handlePause = () => {
+    window.speechSynthesis.pause();
+    setIsPaused(true);
+    setIsSpeaking(false);
+  };
+
+  const handleStop = () => {
+    window.speechSynthesis.cancel();
+    queueRef.current = [];
+    currentChunkIndexRef.current = 0;
+    setIsSpeaking(false);
+    setIsPaused(false);
+  };
 
   // Funciones para Comprensión Lectora
   const toggleTextoSeleccionado = (textoId: string) => {
@@ -211,6 +374,7 @@ export default function PracticaAreaContent() {
 
     // Limpiar cache si cambió de texto
     if (textoActual && textoActual.id !== primerTexto.id) {
+      handleStop(); // Detener lectura si cambia texto
       const oldCacheKey = `texto_${textoActual.id}`;
       localStorage.removeItem(oldCacheKey);
     }
@@ -576,10 +740,44 @@ export default function PracticaAreaContent() {
               <CardFooter className="flex justify-end gap-3">
                 <Button
                   variant="outline"
-                  onClick={() => setFase("seleccion-textos")}
+                  onClick={() => {
+                    setFase("seleccion-textos")
+                    handleStop()
+                  }}
                 >
                   Volver a Selección
                 </Button>
+
+                <div className="flex-1 flex justify-center gap-2 items-center">
+                  {!isSpeaking && !isPaused ? (
+                    <Button variant="outline" onClick={handleSpeak}>
+                      <Volume2 className="w-4 h-4 mr-2" />
+                      Escuchar
+                    </Button>
+                  ) : (
+                    <>
+                      {isSpeaking ? (
+                        <Button variant="outline" onClick={handlePause}>
+                          <Pause className="w-4 h-4 mr-2" />
+                          Pausar
+                        </Button>
+                      ) : (
+                        <Button variant="outline" onClick={handleSpeak}>
+                          <Play className="w-4 h-4 mr-2" />
+                          Continuar
+                        </Button>
+                      )}
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={handleStop}
+                      >
+                        <Square className="w-4 h-4 fill-current" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+
                 <Button
                   onClick={handleComenzarPreguntas}
                   disabled={cargando}
