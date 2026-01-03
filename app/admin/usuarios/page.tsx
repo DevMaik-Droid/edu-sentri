@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Profile } from "@/types/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,29 +12,35 @@ export default function AdminUsuariosPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfiles = useCallback(async () => {
-    // Only set loading if we are re-fetching, assuming initial load handles its own state or we want to show spinner on refresh
-    // For now, removing setLoading(true) to avoid immediate re-render effects if called internally.
-    // If we want to show loading on manual refresh, we can handle it there.
+useEffect(() => {
+  let isMounted = true;
+
+  const fetchProfiles = async () => {
+    setLoading(true);
 
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
       .order("fecha_registro", { ascending: false });
 
+    if (!isMounted) return;
+
     if (error) {
       console.error("Error fetching profiles:", error);
     } else {
       setProfiles(data || []);
     }
+
     setLoading(false);
-  }, []);
+  };
 
-  useEffect(() => {
-    
-    fetchProfiles();
+  fetchProfiles();
 
-  }, [fetchProfiles]);
+  return () => {
+    isMounted = false;
+  };
+}, []);
+
 
 
   const toggleActive = async (id: string, currentStatus: boolean) => {
@@ -72,7 +78,7 @@ export default function AdminUsuariosPage() {
     <div className="container mx-auto p-6 space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Gestión de Usuarios</h1>
-        <CreateUserDialog onUserCreated={fetchProfiles} />
+        <CreateUserDialog onUserCreated={() => setProfiles([...profiles])} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
