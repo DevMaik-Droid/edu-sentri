@@ -318,14 +318,16 @@ export default function PracticaAreaContent() {
     // Procesar texto
     // Procesar texto con Normalización PRO
     const normalizarTexto = (texto: string) => {
-      return texto
-        .replace(/[#*`_\[\]]/g, "") // Limpiar MD
-        .replace(/\n+/g, " ") // elimina saltos de línea
-        .replace(/\s+/g, " ") // elimina espacios múltiples
-        // Elimina paréntesis y CUALQUIER coma dentro de ellos para evitar pausas
-        .replace(/\((.*?)\)/g, (_, content) => content.replace(/,/g, "")) 
-        .replace(/[:;]/g, ",") // : ; -> , para pausa natural
-        .trim();
+      return (
+        texto
+          .replace(/[#*`_\[\]]/g, "") // Limpiar MD
+          .replace(/\n+/g, " ") // elimina saltos de línea
+          .replace(/\s+/g, " ") // elimina espacios múltiples
+          // Elimina paréntesis y CUALQUIER coma dentro de ellos para evitar pausas
+          .replace(/\((.*?)\)/g, (_, content) => content.replace(/,/g, ""))
+          .replace(/[:;]/g, ",") // : ; -> , para pausa natural
+          .trim()
+      );
     };
 
     const cleanText = normalizarTexto(textoActual.contenido);
@@ -674,122 +676,124 @@ export default function PracticaAreaContent() {
               </div>
             )}
 
-            <Card className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <CardHeader>
+            {/* CARD PRINCIPAL */}
+            <Card className="flex flex-col h-[89vh] animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <CardHeader className="shrink-0">
                 <CardTitle className="flex items-center gap-2">
                   <BookOpen className="w-6 h-6 text-primary" />
                   {textoActual.titulo}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="max-h-[75vh] overflow-y-auto">
+
+              {/* CONTENIDO CON SCROLL */}
+              <CardContent className="flex-1 overflow-y-auto">
                 <div className="prose prose-base dark:prose-invert max-w-none">
                   <ReactMarkdown
                     components={{
-                      h2: ({ ...props }) => (
+                      h2: (props) => (
                         <h2
-                          className="text-2xl font-bold mt-6 mb-4 text-foreground"
+                          className="text-2xl font-bold mt-6 mb-4"
                           {...props}
                         />
                       ),
-                      h3: ({ ...props }) => (
+                      h3: (props) => (
                         <h3
-                          className="text-xl font-semibold mt-5 mb-3 text-foreground"
+                          className="text-xl font-semibold mt-5 mb-3"
                           {...props}
                         />
                       ),
-                      p: ({ ...props }) => (
+                      p: (props) => (
                         <p
                           className="mb-4 leading-7 text-foreground/90"
                           {...props}
                         />
                       ),
-                      ul: ({ ...props }) => (
+                      ul: (props) => (
                         <ul
                           className="my-4 ml-6 list-disc space-y-2"
                           {...props}
                         />
                       ),
-                      ol: ({ ...props }) => (
+                      ol: (props) => (
                         <ol
                           className="my-4 ml-6 list-decimal space-y-2"
                           {...props}
                         />
                       ),
-                      li: ({ ...props }) => (
-                        <li className="leading-7" {...props} />
-                      ),
-                      strong: ({ ...props }) => (
+                      li: (props) => <li className="leading-7" {...props} />,
+                      strong: (props) => (
                         <strong
                           className="font-semibold text-foreground"
                           {...props}
                         />
                       ),
-                      em: ({ ...props }) => (
-                        <em className="italic" {...props} />
-                      ),
+                      em: (props) => <em className="italic" {...props} />,
                     }}
                   >
                     {textoActual.contenido}
                   </ReactMarkdown>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-end gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setFase("seleccion-textos")
-                    handleStop()
-                  }}
-                >
-                  Volver a Selección
-                </Button>
 
-                <div className="flex-1 flex justify-center gap-2 items-center">
-                  {!isSpeaking && !isPaused ? (
-                    <Button variant="outline" onClick={handleSpeak}>
-                      <Volume2 className="w-4 h-4 mr-2" />
-                      Escuchar
-                    </Button>
-                  ) : (
-                    <>
-                      {isSpeaking ? (
-                        <Button variant="outline" onClick={handlePause}>
-                          <Pause className="w-4 h-4 mr-2" />
-                          Pausar
-                        </Button>
-                      ) : (
-                        <Button variant="outline" onClick={handleSpeak}>
-                          <Play className="w-4 h-4 mr-2" />
-                          Continuar
-                        </Button>
-                      )}
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={handleStop}
-                      >
-                        <Square className="w-4 h-4 fill-current" />
+              {/* FOOTER FIJO */}
+              <CardFooter className="shrink-0 border-t flex justify-center gap-1 py-1 h-10">
+                {!isSpeaking && !isPaused ? (
+                  <Button variant="outline" onClick={handleSpeak}>
+                    <Volume2 className="w-4 h-4 mr-2" />
+                    Escuchar
+                  </Button>
+                ) : (
+                  <>
+                    {isSpeaking ? (
+                      <Button variant="outline" onClick={handlePause}>
+                        <Pause className="w-4 h-4 mr-2" />
+                        Pausar
                       </Button>
-                    </>
-                  )}
-                </div>
-
-                <Button
-                  onClick={handleComenzarPreguntas}
-                  disabled={cargando}
-                  className="gap-2"
-                >
-                  {cargando ? (
-                    "Cargando..."
-                  ) : (
-                    <>
-                      Comenzar Preguntas
-                      <ChevronRight className="w-4 h-4" />
-                    </>
-                  )}
-                </Button>
+                    ) : (
+                      <Button variant="outline" onClick={handleSpeak}>
+                        <Play className="w-4 h-4 mr-2" />
+                        Continuar
+                      </Button>
+                    )}
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={handleStop}
+                    >
+                      <Square className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
               </CardFooter>
             </Card>
+
+            {/* BOTONES INFERIORES SIEMPRE VISIBLES */}
+            <div className="flex justify-center gap-2 mt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setFase("seleccion-textos");
+                  handleStop();
+                }}
+              >
+                Volver a Selección
+              </Button>
+
+              <Button
+                onClick={handleComenzarPreguntas}
+                disabled={cargando}
+                className="gap-2"
+              >
+                {cargando ? (
+                  "Cargando..."
+                ) : (
+                  <>
+                    Comenzar Preguntas
+                    <ChevronRight className="w-4 h-4" />
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       );
