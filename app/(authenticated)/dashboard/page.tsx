@@ -12,17 +12,19 @@ import ClientLayout from "../ClientLayout";
 import { obtenerHistorialSupabase } from "@/services/intentos";
 
 const areas = [
-  { value: "Comprensión Lectora", icon: BookOpen, color: "text-blue-600" },
-  { value: "Razonamiento Lógico", icon: Brain, color: "text-purple-600" },
+  { value: "Comprensión Lectora", icon: BookOpen, color: "text-blue-600", num_preguntas: 30 },
+  { value: "Razonamiento Lógico", icon: Brain, color: "text-purple-600", num_preguntas: 30 },
   {
     value: "Conocimientos Generales",
     icon: Lightbulb,
     color: "text-amber-600",
+    num_preguntas: 20,
   },
   {
     value: "Habilidades Socioemocionales",
     icon: Heart,  
     color: "text-rose-600",
+    num_preguntas: 20,
   },
 ];
 
@@ -107,7 +109,7 @@ export default function DashboardPage() {
                         <Icon
                           className={`w-5 h-5 sm:w-6 sm:h-6 ${area.color} shrink-0`}
                         />
-                        <span className="text-left flex-1">{area.value}</span>
+                        <span className="text-left flex-1">{area.value} ({area.num_preguntas})</span>
                         <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                       </Button>
                     </Link>
