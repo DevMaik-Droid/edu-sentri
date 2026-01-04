@@ -88,7 +88,6 @@ export function QuestionCard({
   >(pregunta.opciones);
   const [showImageDialog, setShowImageDialog] = useState(false);
 
-
   useEffect(() => {
     if (!pregunta.opciones) return;
 
@@ -158,6 +157,37 @@ export function QuestionCard({
             className="space-y-2 sm:space-y-3"
           >
             {opcionesBarajadas.map((opcion, index) => {
+              const esSeleccionada = respuestaSeleccionada === opcion.clave;
+
+              // Si NO se deben mostrar respuestas, usar estilo neutro
+              if (!mostrar) {
+                return (
+                  <div
+                    key={index}
+                    className={`flex items-center space-x-3 p-3 sm:p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 ${
+                      esSeleccionada
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50 hover:bg-secondary/50"
+                    }`}
+                  >
+                    <RadioGroupItem
+                      value={opcion.clave}
+                      id={`opcion-${index}`}
+                      className="shrink-0"
+                    />
+                    <Label
+                      htmlFor={`opcion-${index}`}
+                      className={`flex-1 cursor-pointer text-sm sm:text-base leading-relaxed ${
+                        esSeleccionada ? "font-semibold text-primary" : ""
+                      }`}
+                    >
+                      {opcion.texto}
+                    </Label>
+                  </div>
+                );
+              }
+
+              // Lógica original para cuando SÍ se muestra respuesta (Feedback mode)
               const seleccion_correcta =
                 respuestaSeleccionada === opcion.clave && opcion.es_correcta;
               const seleccion_incorrecta =

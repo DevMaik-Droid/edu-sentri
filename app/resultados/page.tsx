@@ -382,12 +382,11 @@ export default function ResultadosPage() {
             </div>
           </CardContent>
         </Card>
-
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300">
+        <div className="flex flex-col mb-8 sm:flex-row gap-3 sm:gap-4 justify-center items-center animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300">
           <Button
             onClick={() => router.push("/dashboard")}
-            variant="ghost"
+            variant="outline"
             className="w-full sm:w-auto gap-2 hover:bg-muted"
           >
             <Home className="w-4 h-4" />
@@ -410,6 +409,115 @@ export default function ResultadosPage() {
             Nueva Prueba
           </Button>
         </div>
+
+        {/* Detailed Question Analysis */}
+        <Card className="mb-8 border shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+          <CardHeader className="border-b bg-muted/20">
+            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-primary" />
+              Revisión de Preguntas
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              {(() => {
+                // Recover questions and answers logic locally since we need it for rendering
+                const preguntasStr = localStorage.getItem("temp_preguntas");
+                const respuestasStr = localStorage.getItem("temp_respuestas");
+
+                if (!preguntasStr || !respuestasStr) return null;
+
+                const preguntas: PreguntaUI[] = JSON.parse(preguntasStr);
+                const respuestas: RespuestaUsuario[] =
+                  JSON.parse(respuestasStr);
+
+                return preguntas.map((pregunta, index) => {
+                  const respuestaUsuario = respuestas.find(
+                    (r) => r.preguntaId === pregunta.id
+                  );
+                  const opcionCorrecta = pregunta.opciones.find(
+                    (o) => o.es_correcta
+                  );
+                  const opcionUsuario = pregunta.opciones.find(
+                    (o) => o.clave === respuestaUsuario?.respuestaSeleccionada
+                  );
+                  const esCorrecta = opcionUsuario?.es_correcta || false;
+
+                  return (
+                    <div
+                      key={pregunta.id}
+                      className="border rounded-lg p-4 space-y-3 bg-card/50"
+                    >
+                      <div className="flex gap-3">
+                        <div className="mt-1">
+                          {esCorrecta ? (
+                            <CheckCircle2 className="w-5 h-5 text-green-500" />
+                          ) : (
+                            <XCircle className="w-5 h-5 text-red-500" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-sm sm:text-base mb-2">
+                            {index + 1}. {pregunta.enunciado}
+                          </h3>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mt-3">
+                            <div
+                              className={`p-3 rounded-md ${
+                                esCorrecta
+                                  ? "bg-green-500/10 border border-green-200 dark:border-green-900"
+                                  : "bg-red-500/10 border border-red-200 dark:border-red-900"
+                              }`}
+                            >
+                              <p className="font-medium mb-1 text-xs uppercase tracking-wide opacity-70">
+                                Tu Respuesta
+                              </p>
+                              <p
+                                className={
+                                  esCorrecta
+                                    ? "text-green-700 dark:text-green-300"
+                                    : "text-red-700 dark:text-red-300"
+                                }
+                              >
+                                {opcionUsuario
+                                  ? `${opcionUsuario.clave}) ${opcionUsuario.texto}`
+                                  : "No respondida"}
+                              </p>
+                            </div>
+
+                            {!esCorrecta && (
+                              <div className="p-3 rounded-md bg-green-500/10 border border-green-200 dark:border-green-900">
+                                <p className="font-medium mb-1 text-xs uppercase tracking-wide opacity-70">
+                                  Respuesta Correcta
+                                </p>
+                                <p className="text-green-700 dark:text-green-300">
+                                  {opcionCorrecta
+                                    ? `${opcionCorrecta.clave}) ${opcionCorrecta.texto}`
+                                    : "No disponible"}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
+                          {pregunta.sustento && (
+                            <div className="mt-3 text-xs sm:text-sm text-muted-foreground bg-muted/30 p-3 rounded-md">
+                              <span className="font-semibold">
+                                Explicación:{" "}
+                              </span>
+                              {pregunta.sustento}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </CardContent>
+        </Card>
+
+        
       </div>
     </div>
   );

@@ -997,6 +997,8 @@ export default function PracticaAreaContent() {
           {/* PROGRESO */}
           <div className="mb-4 sm:mb-6 shrink-0">
             <Progress value={progreso} className="h-2" />
+
+
             <div className="flex justify-between mt-1 text-sm text-muted-foreground items-center">
               <span>Pregunta {currentIndex + 1}</span>
               {isComprensionLectora && (
@@ -1010,8 +1012,10 @@ export default function PracticaAreaContent() {
                   Ver Texto
                 </Button>
               )}
+              
               <span>Total {preguntas.length}</span>
             </div>
+
           </div>
 
           {/* PREGUNTA (SCROLL INTERNO) */}

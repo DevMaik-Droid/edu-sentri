@@ -96,7 +96,7 @@ export default function EstudiarPage() {
           return (
             <Card
               key={area.id}
-              className={`${area.bgColor} ${area.borderColor} border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500`}
+              className={`${area.bgColor} ${area.borderColor} border-2 transform transition-all duration-300 hover:scale-105 hover:shadow-xl animate-in fade-in slide-in-from-bottom-4`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <CardHeader>

@@ -33,7 +33,8 @@ export async function obtenerPreguntas(limit = 5): Promise<PreguntaUI[]> {
      activa,
      componentes(nombre),
      disciplinas(nombre),
-     num_pregunta
+     num_pregunta,
+     texto_lectura_id
     `
     )
     .eq("activa", true)
@@ -65,7 +66,8 @@ export async function obtenerPreguntasPorArea(
      componentes!inner(nombre),
      disciplinas${disciplina ? "!inner" : ""}(nombre),
      num_pregunta,
-     image
+     image,
+     texto_lectura_id
     `
     )
     .eq("activa", true)
@@ -90,6 +92,53 @@ export async function obtenerPreguntasPorArea(
   if (!data) return [];
 
   // 👇 Supabase puede devolver null
+  return (data as Pregunta[]).map(mapPreguntaDBtoUI);
+}
+
+/**
+ * Obtiene un número específico de preguntas aleatorias para un área
+ */
+export async function obtenerPreguntasAleatoriasPorArea(
+  area: string,
+  cantidad: number
+): Promise<PreguntaUI[]> {
+  // 1. Obtener todos los IDs disponibles para el área
+  const { data: ids, error: idError } = await supabase
+    .from("preguntas")
+    .select("id, componentes!inner(nombre)")
+    .eq("activa", true)
+    .eq("componentes.nombre", area);
+
+  if (idError) throw idError;
+  if (!ids || ids.length === 0) return [];
+
+  // 2. Mezclar y seleccionar N IDs
+  const shuffled = ids.sort(() => 0.5 - Math.random());
+  const selectedIds = shuffled.slice(0, cantidad).map((item) => item.id);
+
+  // 3. Obtener detalles de las preguntas seleccionadas
+  const { data, error } = await supabase
+    .from("preguntas")
+    .select(
+      `
+      id,
+     enunciado,
+     opciones,
+     sustento,
+     dificultad,
+     activa,
+     componentes!inner(nombre),
+     disciplinas(nombre),
+     num_pregunta,
+     image,
+     texto_lectura_id
+    `
+    )
+    .in("id", selectedIds);
+
+  if (error) throw error;
+  if (!data) return [];
+
   return (data as Pregunta[]).map(mapPreguntaDBtoUI);
 }
 
@@ -185,7 +234,8 @@ export async function obtenerPreguntasPorTextoLectura(
      activa,
      componentes(nombre),
      disciplinas(nombre),
-     num_pregunta
+     num_pregunta,
+     texto_lectura_id
     `
     )
     .eq("activa", true)

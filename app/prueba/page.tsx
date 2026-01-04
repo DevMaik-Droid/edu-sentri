@@ -5,10 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { RespuestaUsuario, Area, PreguntaUI } from "@/types/pregunta";
 import { seleccionarPreguntasDemo } from "@/lib/seleccionar-preguntas";
 import { QuestionCard } from "@/components/question-card";
-import { ProgressBar } from "@/components/progress-bar";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
-import { obtenerPreguntasPorArea } from "@/services/preguntas";
+import {
+  obtenerPreguntasPorArea,
+  obtenerPreguntasAleatoriasPorArea,
+} from "@/services/preguntas";
 import { LoadingLottie } from "@/components/loading-lottie";
 import {
   getActiveSession,
@@ -16,7 +18,10 @@ import {
   clearActiveSession,
 } from "@/lib/local-storage";
 import { obtenerPruebaGeneral } from "@/services/simulacro";
-import { obtenerTextoLecturaPorId } from "@/services/textos-lectura";
+import {
+  obtenerTextoLecturaPorId,
+  obtenerTextosAleatoriosConPreguntas,
+} from "@/services/textos-lectura";
 import type { TextoLectura } from "@/types/textos-lectura";
 import ReactMarkdown from "react-markdown";
 import {
@@ -29,6 +34,7 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { Eye, BookOpen } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 export default function PruebaPage() {
   const router = useRouter();
@@ -42,9 +48,20 @@ export default function PruebaPage() {
   const [loading, setLoading] = useState(true);
 
   // States for reading comprehension text
-  const [textoLectura, setTextoLectura] = useState<TextoLectura | null>(null);
   const [showTextoDialog, setShowTextoDialog] = useState(false);
-  const [loadingTexto, setLoadingTexto] = useState(false);
+
+  // States for selected texts in Comprensión Lectora
+  const [textosSeleccionados, setTextosSeleccionados] = useState<
+    TextoLectura[]
+  >([]);
+
+  const [textoActual, setTextoActual] = useState<TextoLectura | null>(null);
+
+  // Derived states
+  const isComprensionLectora = area === "Comprensión Lectora";
+  const currentIndex = preguntaActual;
+  const progreso =
+    preguntas.length > 0 ? ((preguntaActual + 1) / preguntas.length) * 100 : 0;
 
   // Timer state (2 hours = 7200 seconds)
   const [timeLeft, setTimeLeft] = useState(7200);
@@ -158,7 +175,37 @@ export default function PruebaPage() {
             break;
           case "area":
             if (area) {
-              preguntasCargadas = await obtenerPreguntasPorArea(area, 0, 99);
+              // CASO ESPECIAL: Comprensión Lectora usa 2 textos aleatorios
+              if (area === "Comprensión Lectora") {
+                const { textos, preguntas: preguntasTextos } =
+                  await obtenerTextosAleatoriosConPreguntas(2, 15);
+
+                setTextosSeleccionados(textos);
+
+                // Agrupar preguntas por texto (ordenar por texto_lectura_id)
+                // Esto asegura que el usuario responda todas las preguntas de un texto antes de pasar al siguiente
+                preguntasCargadas = preguntasTextos.sort((a, b) => {
+                  const idA = a.texto_lectura_id || "";
+                  const idB = b.texto_lectura_id || "";
+                  return idA.localeCompare(idB);
+                });
+
+                // No mostrar dialog inicial, se mostrará automáticamente con cada pregunta
+              } else if (area === "Razonamiento Lógico") {
+                // CASO ESPECIAL: Razonamiento Lógico usa 30 preguntas aleatorias
+                preguntasCargadas = await obtenerPreguntasAleatoriasPorArea(
+                  area,
+                  30
+                );
+              } else if (area === "Conocimientos Generales") {
+                // CASO ESPECIAL: Conocimientos Generales usa 20 preguntas aleatorias
+                preguntasCargadas = await obtenerPreguntasAleatoriasPorArea(
+                  area,
+                  20
+                );
+              } else {
+                preguntasCargadas = await obtenerPreguntasPorArea(area, 0, 99);
+              }
             } else {
               router.push("/");
               return;
@@ -200,36 +247,56 @@ export default function PruebaPage() {
   useEffect(() => {
     const currentPregunta = preguntas[preguntaActual];
     if (!currentPregunta?.texto_lectura_id) {
-      setTextoLectura(null);
+      setTextoActual(null);
       return;
     }
 
     const loadText = async () => {
       // If we already have the text loaded, don't reload unless ID changed
-      if (textoLectura?.id === currentPregunta.texto_lectura_id) return;
+      if (textoActual?.id === currentPregunta.texto_lectura_id) return;
 
-      setLoadingTexto(true);
       try {
+        // 1. Check if text is in textosSeleccionados (optimization)
+        if (isComprensionLectora && textosSeleccionados.length > 0) {
+          const textoPreload = textosSeleccionados.find(
+            (t) => t.id === currentPregunta.texto_lectura_id
+          );
+          if (textoPreload) {
+            setTextoActual(textoPreload);
+
+            // Logic to auto-show dialog only if it's the first question of this text block
+            const prevPregunta =
+              preguntaActual > 0 ? preguntas[preguntaActual - 1] : null;
+            if (
+              !prevPregunta ||
+              prevPregunta.texto_lectura_id !== currentPregunta.texto_lectura_id
+            ) {
+              setShowTextoDialog(true);
+            }
+
+            return;
+          }
+        }
+
         const cacheKey = `texto_content_${currentPregunta.texto_lectura_id}`;
         const cachedText = localStorage.getItem(cacheKey);
 
         if (cachedText) {
           const parsed = JSON.parse(cachedText);
-          // Simple version check or expiry could go here, for now infinite cache until finish?
-          // Or just standard cache. Textos usually don't change often.
-          // Let's use it.
-          setTextoLectura(parsed);
+          setTextoActual(parsed);
 
-          // Logic to auto-show dialog
-          const prevPregunta =
-            preguntaActual > 0 ? preguntas[preguntaActual - 1] : null;
-          if (
-            !prevPregunta ||
-            prevPregunta.texto_lectura_id !== currentPregunta.texto_lectura_id
-          ) {
-            setShowTextoDialog(true);
+          // Logic to auto-show dialog for Comprensión Lectora
+          if (isComprensionLectora) {
+            const prevPregunta =
+              preguntaActual > 0 ? preguntas[preguntaActual - 1] : null;
+            if (
+              !prevPregunta ||
+              prevPregunta.texto_lectura_id !== currentPregunta.texto_lectura_id
+            ) {
+              setShowTextoDialog(true);
+            }
           }
-          setLoadingTexto(false);
+
           return;
         }
 
@@ -237,28 +304,33 @@ export default function PruebaPage() {
           currentPregunta.texto_lectura_id!
         );
         if (texto) {
-          setTextoLectura(texto);
+          setTextoActual(texto);
           localStorage.setItem(cacheKey, JSON.stringify(texto));
 
-          // Logic to auto-show dialog
-          const prevPregunta =
-            preguntaActual > 0 ? preguntas[preguntaActual - 1] : null;
-          if (
-            !prevPregunta ||
-            prevPregunta.texto_lectura_id !== currentPregunta.texto_lectura_id
-          ) {
-            setShowTextoDialog(true);
+          // Logic to auto-show dialog for Comprensión Lectora
+          if (isComprensionLectora) {
+            const prevPregunta =
+              preguntaActual > 0 ? preguntas[preguntaActual - 1] : null;
+            if (
+              !prevPregunta ||
+              prevPregunta.texto_lectura_id !== currentPregunta.texto_lectura_id
+            ) {
+              setShowTextoDialog(true);
+            }
           }
         }
       } catch (error) {
         console.error("Error loading text:", error);
-      } finally {
-        setLoadingTexto(false);
       }
     };
-
     loadText();
-  }, [preguntaActual, preguntas, textoLectura]);
+  }, [
+    preguntas,
+    preguntaActual,
+    textoActual,
+    isComprensionLectora,
+    textosSeleccionados,
+  ]);
 
   const handleSeleccionarRespuesta = (respuesta: string) => {
     const preguntaId = preguntas[preguntaActual].id;
@@ -330,6 +402,39 @@ export default function PruebaPage() {
             <div className="grid grid-cols-2 gap-4 py-4">
               <Button
                 onClick={() => {
+                  setTiempoSeleccionado(600);
+                  setShowTimeSelector(false);
+                }}
+                variant="outline"
+                className="h-20 flex flex-col gap-1"
+              >
+                <span className="text-xl font-bold">10</span>
+                <span className="text-xs">Minutos</span>
+              </Button>
+              <Button
+                onClick={() => {
+                  setTiempoSeleccionado(900);
+                  setShowTimeSelector(false);
+                }}
+                variant="outline"
+                className="h-20 flex flex-col gap-1"
+              >
+                <span className="text-xl font-bold">15</span>
+                <span className="text-xs">Minutos</span>
+              </Button>
+              <Button
+                onClick={() => {
+                  setTiempoSeleccionado(1200);
+                  setShowTimeSelector(false);
+                }}
+                variant="outline"
+                className="h-20 flex flex-col gap-1"
+              >
+                <span className="text-xl font-bold">20</span>
+                <span className="text-xs">Minutos</span>
+              </Button>
+              <Button
+                onClick={() => {
                   setTiempoSeleccionado(1800);
                   setShowTimeSelector(false);
                 }}
@@ -341,13 +446,13 @@ export default function PruebaPage() {
               </Button>
               <Button
                 onClick={() => {
-                  setTiempoSeleccionado(2400);
+                  setTiempoSeleccionado(2700);
                   setShowTimeSelector(false);
                 }}
                 variant="outline"
                 className="h-20 flex flex-col gap-1"
               >
-                <span className="text-xl font-bold">40</span>
+                <span className="text-xl font-bold">45</span>
                 <span className="text-xs">Minutos</span>
               </Button>
               <Button
@@ -360,28 +465,6 @@ export default function PruebaPage() {
               >
                 <span className="text-xl font-bold">1</span>
                 <span className="text-xs">Hora</span>
-              </Button>
-              <Button
-                onClick={() => {
-                  setTiempoSeleccionado(5400);
-                  setShowTimeSelector(false);
-                }}
-                variant="outline"
-                className="h-20 flex flex-col gap-1"
-              >
-                <span className="text-xl font-bold">1:30</span>
-                <span className="text-xs">Horas</span>
-              </Button>
-              <Button
-                onClick={() => {
-                  setTiempoSeleccionado(7200);
-                  setShowTimeSelector(false);
-                }}
-                variant="outline"
-                className="h-20 flex flex-col gap-1"
-              >
-                <span className="text-xl font-bold">2</span>
-                <span className="text-xs">Horas</span>
               </Button>
             </div>
             <AlertDialogFooter>
@@ -402,7 +485,7 @@ export default function PruebaPage() {
   const respuestaActual = respuestas.find(
     (r) => r.preguntaId === preguntas[preguntaActual].id
   )?.respuestaSeleccionada;
-  const mostrarRespuesta = respuestaActual !== undefined;
+  const mostrarRespuesta = false;
 
   return (
     <div className="bg-background min-h-screen flex flex-col">
@@ -417,22 +500,43 @@ export default function PruebaPage() {
             >
               {formatTime(timeLeft)}
             </div>
-            <ProgressBar actual={preguntaActual + 1} total={preguntas.length} />
+            {/* PROGRESO */}
+            <div className="mb-4 sm:mb-6 shrink-0">
+              <Progress value={progreso} className="h-2" />
 
-            {/* Botón ver texto si la pregunta lo requiere */}
-            {preguntas[preguntaActual]?.texto_lectura_id && (
-              <div className="flex justify-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowTextoDialog(true)}
-                  className="h-8 gap-2 text-primary border-primary/20 hover:border-primary/50"
-                >
-                  <Eye className="w-4 h-4" />
-                  Ver Texto de Lectura
-                </Button>
+              <div className="flex justify-between mt-1 text-sm text-muted-foreground items-center">
+                <span>Pregunta {currentIndex + 1}</span>
+                {isComprensionLectora && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowTextoDialog(true)}
+                    className="h-6 gap-1.5 text-xs font-medium text-primary hover:text-primary/80"
+                  >
+                    <Eye className="w-3 h-3" />
+                    Ver Texto
+                  </Button>
+                )}
+
+                <span>Total {preguntas.length}</span>
               </div>
-            )}
+            </div>
+
+            {/* Botón ver texto individual si la pregunta lo requiere (para otros casos) */}
+            {area !== "Comprensión Lectora" &&
+              preguntas[preguntaActual]?.texto_lectura_id && (
+                <div className="flex justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowTextoDialog(true)}
+                    className="h-8 gap-2 text-primary border-primary/20 hover:border-primary/50"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Ver Texto de Lectura
+                  </Button>
+                </div>
+              )}
           </div>
         </div>
 
@@ -504,24 +608,15 @@ export default function PruebaPage() {
 
       {/* AlertDialog para mostrar texto de lectura */}
       <AlertDialog open={showTextoDialog} onOpenChange={setShowTextoDialog}>
-        <AlertDialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+        <AlertDialogContent className="max-h-[90vh] min-w-[60vw] max-w-[90vw] overflow-hidden flex flex-col">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-primary" />
-              {textoLectura?.titulo || "Texto de Lectura"}
+              {textoActual?.titulo || "Texto de Lectura"}
             </AlertDialogTitle>
-            {textoLectura?.fuente && (
-              <AlertDialogDescription>
-                Fuente: {textoLectura.fuente}
-              </AlertDialogDescription>
-            )}
           </AlertDialogHeader>
           <div className="flex-1 overflow-y-auto pr-2">
-            {loadingTexto ? (
-              <div className="flex items-center justify-center py-12">
-                <LoadingLottie size={100} />
-              </div>
-            ) : textoLectura ? (
+            {textoActual && (
               <div className="prose prose-base dark:prose-invert max-w-none">
                 <ReactMarkdown
                   components={{
@@ -567,13 +662,9 @@ export default function PruebaPage() {
                     em: ({ ...props }) => <em className="italic" {...props} />,
                   }}
                 >
-                  {textoLectura.contenido}
+                  {textoActual.contenido}
                 </ReactMarkdown>
               </div>
-            ) : (
-              <p className="text-center text-muted-foreground py-8">
-                No se pudo cargar el texto.
-              </p>
             )}
           </div>
           <AlertDialogFooter>
@@ -581,6 +672,7 @@ export default function PruebaPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
       <AlertDialog open={showTimeSelector}>
         <AlertDialogContent>
           <AlertDialogHeader>

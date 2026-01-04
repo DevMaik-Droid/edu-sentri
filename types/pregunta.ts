@@ -21,6 +21,7 @@ export interface Pregunta {
   disciplinas?: Disciplina[];
   num_pregunta?: number;
   image?: string;
+  texto_lectura_id?: string;
 }
 
 // types/pregunta.ui.ts
