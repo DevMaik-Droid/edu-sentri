@@ -12,15 +12,15 @@ import ClientLayout from "../ClientLayout";
 import { obtenerHistorialSupabase } from "@/services/intentos";
 
 const areas = [
-  { value: "Comprensión Lectora (30 preguntas)", icon: BookOpen, color: "text-blue-600" },
-  { value: "Razonamiento Lógico (30 preguntas)", icon: Brain, color: "text-purple-600" },
+  { value: "Comprensión Lectora (30)", icon: BookOpen, color: "text-blue-600" },
+  { value: "Razonamiento Lógico (30)", icon: Brain, color: "text-purple-600" },
   {
-    value: "Conocimientos Generales (20 preguntas)",
+    value: "Conocimientos Generales (20)",
     icon: Lightbulb,
     color: "text-amber-600",
   },
   {
-    value: "Habilidades Socioemocionales (20 preguntas)",
+    value: "Habilidades Socioemocionales (20)",
     icon: Heart,  
     color: "text-rose-600",
   },
