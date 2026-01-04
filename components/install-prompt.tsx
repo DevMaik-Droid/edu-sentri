@@ -56,7 +56,7 @@ export function InstallPrompt() {
         onClick={handleInstallClick}
         variant="outline"
         className="
-        mt-4
+        mt-1 mb-8
           w-full gap-2
           bg-blue-400/90 hover:bg-blue-400/70
           border-blue-400
