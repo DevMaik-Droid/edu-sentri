@@ -12,16 +12,16 @@ import ClientLayout from "../ClientLayout";
 import { obtenerHistorialSupabase } from "@/services/intentos";
 
 const areas = [
-  { value: "Comprensión Lectora", icon: BookOpen, color: "text-blue-600" },
-  { value: "Razonamiento Lógico", icon: Brain, color: "text-purple-600" },
+  { value: "Comprensión Lectora (30 preguntas)", icon: BookOpen, color: "text-blue-600" },
+  { value: "Razonamiento Lógico (30 preguntas)", icon: Brain, color: "text-purple-600" },
   {
-    value: "Conocimientos Generales",
+    value: "Conocimientos Generales (20 preguntas)",
     icon: Lightbulb,
     color: "text-amber-600",
   },
   {
-    value: "Habilidades Socioemocionales",
-    icon: Heart,
+    value: "Habilidades Socioemocionales (20 preguntas)",
+    icon: Heart,  
     color: "text-rose-600",
   },
 ];
@@ -168,6 +168,53 @@ export default function DashboardPage() {
               </Link>
             </CardContent>
           </Card>
+
+          <Card
+            className="
+    w-full h-full cursor-pointer
+    bg-linear-to-br from-red-500/90 to-red-700
+    text-white
+    hover:scale-[1.02] hover:shadow-lg
+    transition-all duration-300
+    rounded-xl
+  "
+            onClick={() => navegar("https://dgfmegi.minedu.gob.bo/#/admision/inscripcion")}
+          >
+            <CardContent className="flex flex-col items-center justify-center gap-3 h-full text-center">
+              <span className="text-3xl font-bold tracking-wide">Registro de Postulantes</span>
+              <span className="text-sm opacity-90">
+                Enlace directo
+              </span>
+            </CardContent>
+          </Card>
+
+          <Card
+            className="
+    w-full h-full
+    bg-linear-to-br from-blue-500/90 to-purple-700
+    text-white
+    hover:scale-[1.02] hover:shadow-lg
+    transition-all duration-300
+    rounded-xl
+  "
+          >
+            <CardContent className="flex flex-col items-center justify-center gap-3 h-full text-center">
+              <Link
+                href="/documentos/convocatoria.pdf"
+                target="_blank"
+                className="flex flex-col items-center gap-2"
+              >
+                <span className="text-3xl font-bold tracking-wide">
+                  Convocatoria Publica
+                </span>
+                <span className="text-sm opacity-90">
+                  Documento oficial en PDF
+                </span>
+              </Link>
+            </CardContent>
+          </Card>
+          
+          
         </div>
       </div>
     </ClientLayout>
