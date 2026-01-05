@@ -273,7 +273,7 @@ export default function ResultadosPage() {
       case "area":
         return "Nueva Prueba";
       case "demo":
-        return "Nueva Demo";
+        return "Intentar de nuevo";
       default:
         return `Nueva ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
     }
