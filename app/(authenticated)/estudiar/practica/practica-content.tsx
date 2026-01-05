@@ -574,8 +574,13 @@ export default function PracticaAreaContent() {
     // Guardar en localStorage temporal para la página de resultados
     localStorage.setItem("temp_preguntas", JSON.stringify(preguntas));
     localStorage.setItem("temp_respuestas", JSON.stringify(respuestasArray));
-    localStorage.setItem("temp_tipo", "area"); // Tipo "area" para prácticas específicas
+    localStorage.setItem("temp_tipo", "practica"); // Tipo "practica" para tabla dedicada
     localStorage.setItem("temp_area", area);
+    if (disciplinaSeleccionada && disciplinaSeleccionada !== "todas") {
+      localStorage.setItem("temp_disciplina", disciplinaSeleccionada);
+    } else {
+      localStorage.removeItem("temp_disciplina");
+    }
 
     router.push("/resultados");
   };
@@ -998,7 +1003,6 @@ export default function PracticaAreaContent() {
           <div className="mb-4 sm:mb-6 shrink-0">
             <Progress value={progreso} className="h-2" />
 
-
             <div className="flex justify-between mt-1 text-sm text-muted-foreground items-center">
               <span>Pregunta {currentIndex + 1}</span>
               {isComprensionLectora && (
@@ -1012,10 +1016,9 @@ export default function PracticaAreaContent() {
                   Ver Texto
                 </Button>
               )}
-              
+
               <span>Total {preguntas.length}</span>
             </div>
-
           </div>
 
           {/* PREGUNTA (SCROLL INTERNO) */}

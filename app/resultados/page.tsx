@@ -37,6 +37,8 @@ export default function ResultadosPage() {
     const respuestasStr = localStorage.getItem("temp_respuestas");
     const tipoPrueba = localStorage.getItem("temp_tipo") || "general";
     const areaPrueba = localStorage.getItem("temp_area") || undefined;
+    const disciplinaPrueba =
+      localStorage.getItem("temp_disciplina") || undefined;
 
     setRetryConfig({ tipo: tipoPrueba, area: areaPrueba || null });
 
@@ -104,31 +106,46 @@ export default function ResultadosPage() {
           correctas,
           incorrectas,
           porcentaje,
-          porArea: resultadosPorArea,
+          disciplina: disciplinaPrueba,
           preguntas,
           respuestas,
         });
 
         if (result.success && result.intentoId) {
-          // Guardar en historial local para caché
-          saveLocalHistory({
-            id: result.intentoId,
-            fecha: new Date(),
-            tipo: tipoPrueba,
-            area: areaPrueba,
-            totalPreguntas: preguntas.length,
-            correctas,
-            incorrectas,
-            porcentaje,
-            porArea: resultadosPorArea,
-          });
+          // Actualizar el historial local si hubo una mejora
+          if (result.mejorado) {
+            saveLocalHistory({
+              id: result.intentoId,
+              fecha: new Date(),
+              tipo: tipoPrueba,
+              area: areaPrueba,
+              totalPreguntas: preguntas.length,
+              correctas,
+              incorrectas,
+              porcentaje,
+              disciplina: disciplinaPrueba,
+            });
+
+            console.log(
+              "🎉 ¡Nuevo récord guardado! Has superado tu mejor intento anterior."
+            );
+          } else {
+            console.log(
+              "📊 Intento completado. No superó el récord anterior, no se guardó en Supabase."
+            );
+          }
+        } else if (result.guardadoLocal && !result.success) {
+          console.log(
+            "⚠️ Error guardando en Supabase, pero se guardó localmente."
+          );
         }
 
-        // Limpiar localStorage temporal después de guardar exitosamente
+        // Limpiar localStorage temporal después de procesar
         localStorage.removeItem("temp_preguntas");
         localStorage.removeItem("temp_respuestas");
         localStorage.removeItem("temp_tipo");
         localStorage.removeItem("temp_area");
+        localStorage.removeItem("temp_disciplina");
       } catch (error) {
         console.error("Error al guardar intento:", error);
       }
@@ -247,6 +264,40 @@ export default function ResultadosPage() {
     );
   };
 
+  const getRetryLabel = (tipo: string) => {
+    switch (tipo) {
+      case "practica":
+        return "Nueva Práctica";
+      case "general":
+        return "Nuevo Simulacro";
+      case "area":
+        return "Nueva Prueba";
+      case "demo":
+        return "Nueva Demo";
+      default:
+        return `Nueva ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
+    }
+  };
+
+  const getRetryUrl = (config: { tipo: string; area?: string | null }) => {
+    if (config.tipo === "practica") {
+      // Para práctica, redirigir a la configuración de práctica
+      return `/estudiar/practica?area=${encodeURIComponent(
+        config.area || "Comprensión Lectora"
+      )}`;
+    }
+
+    // Para pruebas (general, area, demo)
+    const baseUrl = "/prueba";
+    let url = `${baseUrl}?tipo=${config.tipo}`;
+
+    if (config.area) {
+      url += `&area=${encodeURIComponent(config.area)}`;
+    }
+
+    return url;
+  };
+
   return (
     <div className="min-h-screen bg-background py-8 sm:py-12 relative overflow-hidden">
       {/* Confetti container (existing logic) */}
@@ -344,7 +395,7 @@ export default function ResultadosPage() {
           </CardHeader>
           <CardContent className="pt-6">
             <div className="space-y-5">
-              {resultado.porArea.map((area, index) => (
+              {resultado.porArea.map((area) => (
                 <div key={area.area} className="space-y-2">
                   <div className="flex justify-between items-end gap-4">
                     <span className="font-medium text-sm sm:text-base">
@@ -370,12 +421,6 @@ export default function ResultadosPage() {
                   <Progress
                     value={area.porcentaje}
                     className="h-2.5 bg-muted"
-                    // Colorize progress bar based on score using inline style or utility override if allowed by component props
-                    // Shadcn Progress usually uses bg-primary for indicator.
-                    // To customize color per bar, we might need a custom class or style on the indicator if accessible,
-                    // or just wrap it.
-                    // Assuming default Progress, it's primary color.
-                    // We can try to use indicatorClassName if available, or just standard.
                   />
                 </div>
               ))}
@@ -393,20 +438,12 @@ export default function ResultadosPage() {
             Volver al Inicio
           </Button>
           <Button
-            onClick={() =>
-              router.push(
-                `/prueba?tipo=${retryConfig.tipo}${
-                  retryConfig.area
-                    ? `&area=${encodeURIComponent(retryConfig.area)}`
-                    : ""
-                }`
-              )
-            }
+            onClick={() => router.push(getRetryUrl(retryConfig))}
             size="lg"
             className="w-full sm:w-auto gap-2 shadow-lg hover:scale-105 transition-transform"
           >
             <RotateCcw className="w-4 h-4" />
-            Nueva Prueba
+            {getRetryLabel(retryConfig.tipo)}
           </Button>
         </div>
 
@@ -516,8 +553,6 @@ export default function ResultadosPage() {
             </div>
           </CardContent>
         </Card>
-
-        
       </div>
     </div>
   );

@@ -17,6 +17,8 @@ export function calcularEstadisticas(historial: IntentoHistorico[]) {
       mejorPuntaje: 0,
       porcentajeMejora: 0,
       promediosPorArea: {},
+      mejoresPorArea: {},
+      mejoresPorDisciplina: {},
     };
   }
 
@@ -36,17 +38,39 @@ export function calcularEstadisticas(historial: IntentoHistorico[]) {
     porcentajeMejora = ((ultimos3 - primeros3) / primeros3) * 100;
   }
 
-  // Calcular promedios por área
+  // Calcular promedios por área y mejores puntajes
   const promediosPorArea: { [key: string]: number } = {};
+  const mejoresPorArea: { [key: string]: number } = {};
+  const mejoresPorDisciplina: { [key: string]: number } = {};
+
   const intentosPorArea: { [key: string]: number[] } = {};
 
   historial.forEach((intento) => {
-    intento.porArea.forEach((areaResult) => {
-      if (!intentosPorArea[areaResult.area]) {
-        intentosPorArea[areaResult.area] = [];
+    // Área
+    if (intento.area) {
+      if (!intentosPorArea[intento.area]) {
+        intentosPorArea[intento.area] = [];
       }
-      intentosPorArea[areaResult.area].push(areaResult.porcentaje);
-    });
+      intentosPorArea[intento.area].push(intento.porcentaje);
+
+      // Mejor por área
+      if (
+        !mejoresPorArea[intento.area] ||
+        intento.porcentaje > mejoresPorArea[intento.area]
+      ) {
+        mejoresPorArea[intento.area] = intento.porcentaje;
+      }
+    }
+
+    // Disciplina
+    if (intento.disciplina) {
+      if (
+        !mejoresPorDisciplina[intento.disciplina] ||
+        intento.porcentaje > mejoresPorDisciplina[intento.disciplina]
+      ) {
+        mejoresPorDisciplina[intento.disciplina] = intento.porcentaje;
+      }
+    }
   });
 
   Object.entries(intentosPorArea).forEach(([area, porcentajes]) => {
@@ -60,5 +84,7 @@ export function calcularEstadisticas(historial: IntentoHistorico[]) {
     mejorPuntaje,
     porcentajeMejora,
     promediosPorArea,
+    mejoresPorArea,
+    mejoresPorDisciplina,
   };
 }

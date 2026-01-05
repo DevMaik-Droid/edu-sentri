@@ -2,6 +2,7 @@ import { IntentoHistorico, PreguntaUI } from "@/types/pregunta";
 
 const KEYS = {
   HISTORY: "edu_sentri_historial",
+  MASTERY: "edu_sentri_mastery",
   ERRORS: "edu_sentri_errores",
   RECALL: "edu_sentri_recordar",
 };
@@ -28,7 +29,26 @@ export function saveLocalHistory(intento: IntentoHistorico): void {
   if (typeof window === "undefined") return;
   try {
     const history = getLocalHistory();
-    history.unshift(intento);
+    // Buscar si ya existe un intento con este ID o con este Tipo+Area para actualizarlo
+    const existingIndex = history.findIndex(
+      (h) =>
+        h.id === intento.id ||
+        (h.tipo === intento.tipo &&
+          h.area === intento.area &&
+          (h.disciplina || null) === (intento.disciplina || null))
+    );
+
+    if (existingIndex !== -1) {
+      // Reemplazar existente
+      history[existingIndex] = intento;
+    } else {
+      // Agregar nuevo al inicio
+      history.unshift(intento);
+    }
+
+    // Limitar a los últimos X si fuera necesario, pero la regla es 1 por área/tipo
+    // Así que con el upsert anterior deberíamos mantenernos en el límite natural.
+
     localStorage.setItem(KEYS.HISTORY, JSON.stringify(history));
   } catch (error) {
     console.error("Error saving local history:", error);
@@ -42,6 +62,38 @@ export function setLocalHistory(historial: IntentoHistorico[]): void {
   } catch (error) {
     console.error("Error setting local history:", error);
   }
+}
+
+// --- MASTERY STATS ---
+
+export function getLocalMastery(): Record<string, number> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const data = localStorage.getItem(KEYS.MASTERY);
+    // Verificar si existe y si tiene timestamp válido (opcional, por ahora simple)
+    // Podemos guardar { data: ..., timestamp: ... } si queremos expirar
+    if (!data) return null;
+
+    // Check old format validity or just return
+    return JSON.parse(data);
+  } catch (error) {
+    console.error("Error loading local mastery:", error);
+    return null;
+  }
+}
+
+export function saveLocalMastery(stats: Record<string, number>): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(KEYS.MASTERY, JSON.stringify(stats));
+  } catch (error) {
+    console.error("Error saving local mastery:", error);
+  }
+}
+
+export function clearLocalMastery(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(KEYS.MASTERY);
 }
 
 // --- ERRORES / ACTIVE RECALL ---

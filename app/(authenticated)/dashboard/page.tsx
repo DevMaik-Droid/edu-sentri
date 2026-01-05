@@ -12,8 +12,18 @@ import ClientLayout from "../ClientLayout";
 import { obtenerHistorialSupabase } from "@/services/intentos";
 
 const areas = [
-  { value: "Comprensión Lectora", icon: BookOpen, color: "text-blue-600", num_preguntas: 30 },
-  { value: "Razonamiento Lógico", icon: Brain, color: "text-purple-600", num_preguntas: 30 },
+  {
+    value: "Comprensión Lectora",
+    icon: BookOpen,
+    color: "text-blue-600",
+    num_preguntas: 30,
+  },
+  {
+    value: "Razonamiento Lógico",
+    icon: Brain,
+    color: "text-purple-600",
+    num_preguntas: 30,
+  },
   {
     value: "Conocimientos Generales",
     icon: Lightbulb,
@@ -22,7 +32,7 @@ const areas = [
   },
   {
     value: "Habilidades Socioemocionales",
-    icon: Heart,  
+    icon: Heart,
     color: "text-rose-600",
     num_preguntas: 20,
   },
@@ -74,11 +84,13 @@ export default function DashboardPage() {
           <Tabs defaultValue="pruebas" className="space-y-4 mb-8">
             <TabsList>
               <TabsTrigger value="pruebas">Pruebas</TabsTrigger>
-              <TabsTrigger value="practicas">Prácticas</TabsTrigger>
+              <TabsTrigger value="practicas">Estudios</TabsTrigger>
             </TabsList>
             <TabsContent value="pruebas">
               <EstadisticasDashboard
-                historial={historial.filter((h) => h.tipo === "general")}
+                historial={historial.filter(
+                  (h) => h.tipo === "general" || h.tipo === "area"
+                )}
               />
 
               <div className="grid gap-2 sm:gap-4 md:grid-cols-2 lg:grid-cols-2">
@@ -109,7 +121,9 @@ export default function DashboardPage() {
                         <Icon
                           className={`w-5 h-5 sm:w-6 sm:h-6 ${area.color} shrink-0`}
                         />
-                        <span className="text-left flex-1">{area.value} ({area.num_preguntas})</span>
+                        <span className="text-left flex-1">
+                          {area.value} ({area.num_preguntas})
+                        </span>
                         <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                       </Button>
                     </Link>
@@ -119,7 +133,8 @@ export default function DashboardPage() {
             </TabsContent>
             <TabsContent value="practicas">
               <EstadisticasDashboard
-                historial={historial.filter((h) => h.tipo === "area")}
+                historial={historial.filter((h) => h.tipo === "practica")}
+                modo="practicas"
               />
             </TabsContent>
           </Tabs>
@@ -180,13 +195,15 @@ export default function DashboardPage() {
     transition-all duration-300
     rounded-xl
   "
-            onClick={() => navegar("https://dgfmegi.minedu.gob.bo/#/admision/inscripcion")}
+            onClick={() =>
+              navegar("https://dgfmegi.minedu.gob.bo/#/admision/inscripcion")
+            }
           >
             <CardContent className="flex flex-col items-center justify-center gap-3 h-full text-center">
-              <span className="text-3xl font-bold tracking-wide">Registro de Postulantes</span>
-              <span className="text-sm opacity-90">
-                Enlace directo
+              <span className="text-3xl font-bold tracking-wide">
+                Registro de Postulantes
               </span>
+              <span className="text-sm opacity-90">Enlace directo</span>
             </CardContent>
           </Card>
 
@@ -215,8 +232,6 @@ export default function DashboardPage() {
               </Link>
             </CardContent>
           </Card>
-          
-          
         </div>
       </div>
     </ClientLayout>

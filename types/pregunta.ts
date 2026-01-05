@@ -87,10 +87,5 @@ export interface IntentoHistorico {
   correctas: number;
   incorrectas: number;
   porcentaje: number;
-  porArea: {
-    area: string;
-    correctas: number;
-    total: number;
-    porcentaje: number;
-  }[];
+  disciplina?: string;
 }
