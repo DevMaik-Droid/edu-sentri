@@ -197,9 +197,9 @@ export default function ResultadosPage() {
         title: "¡No te rindas!",
         message:
           "El aprendizaje es un proceso. Revisa tus errores y vuelve a intentarlo.",
-        color: "text-orange-500",
-        bgColor: "bg-orange-500/10",
-        borderColor: "border-orange-200 dark:border-orange-800",
+        color: "text-purple-500",
+        bgColor: "bg-purple-500/10",
+        borderColor: "border-purple-500 dark:border-purple-800",
         icon: TrendingUp,
       };
     }

@@ -17,7 +17,7 @@ import {
   saveActiveSession,
   clearActiveSession,
 } from "@/lib/local-storage";
-import { obtenerPruebaGeneral } from "@/services/simulacro";
+import { obtenerPruebaDemo, obtenerPruebaGeneral } from "@/services/simulacro";
 import {
   obtenerTextoLecturaPorId,
   obtenerTextosAleatoriosConPreguntas,
@@ -212,7 +212,18 @@ export default function PruebaPage() {
             }
             break;
           case "demo":
-            preguntasCargadas = await seleccionarPreguntasDemo();
+            const cachedDemo = localStorage.getItem("prueba_demo");
+            if (cachedDemo) {
+              preguntasCargadas = JSON.parse(cachedDemo);
+            } else {
+              preguntasCargadas = await obtenerPruebaDemo();
+              if (preguntasCargadas.length > 0) {
+                localStorage.setItem(
+                  "prueba_demo",
+                  JSON.stringify(preguntasCargadas)
+                );
+              }
+            }
             break;
           default:
             router.push("/");
