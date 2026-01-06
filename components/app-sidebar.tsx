@@ -12,6 +12,7 @@ import {
   Zap,
   Clock,
   BookCheck,
+  Bot,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -150,6 +151,21 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
                     );
                   })}
                 </SidebarMenuSub>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={
+                    pathname?.startsWith("/prueba") &&
+                    !pathname?.includes("area")
+                  }
+                  className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground py-5"
+                >
+                  <Link href="/ia/preguntas">
+                    <Bot  className="w-5 h-5" />
+                    <span className="font-medium">Prueba IA</span>
+                  </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>

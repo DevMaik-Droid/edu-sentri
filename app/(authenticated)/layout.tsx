@@ -1,20 +1,21 @@
-import { redirect } from "next/navigation"
-import { createSupabaseServer } from "@/lib/supabase/server"
+import { redirect } from "next/navigation";
+import { createSupabaseServer } from "@/lib/supabase/server";
+import { ChatWidget } from "@/components/chat/chat-widget";
 
 export default async function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const supabase = await createSupabaseServer()
+  const supabase = await createSupabaseServer();
 
   // 1️⃣ Usuario autenticado
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/")
+    redirect("/");
   }
 
   // 2️⃣ Obtener perfil
@@ -22,12 +23,17 @@ export default async function DashboardLayout({
     .from("profiles")
     .select("nombre")
     .eq("id", user.id)
-    .single()
+    .single();
 
   if (!profile) {
-    redirect("/")
+    redirect("/");
   }
 
   // 5️⃣ Todo correcto
-  return <>{children}</>
+  return (
+    <>
+      {children}
+      <ChatWidget />
+    </>
+  );
 }

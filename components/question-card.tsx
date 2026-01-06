@@ -46,7 +46,7 @@ const coloresPorArea: ColoresPorArea = {
   "Conocimientos Generales": "bg-green-600 text-white",
   "Comprensión Lectora": "bg-violet-600 text-white",
   "Habilidades Socioemocionales": "bg-pink-600 text-white",
-  Default: "bg-gray-600 text-white",
+  Default: "bg-gray-600 text-black",
 };
 
 const coloresPorDisciplina: ColoresPorArea = {
@@ -65,7 +65,7 @@ const coloresPorDisciplina: ColoresPorArea = {
 
   "Técnica Tecnológica": "bg-yellow-100 text-yellow-800",
 
-  Default: "bg-gray-100 text-gray-600",
+  Default: "bg-gray-100 text-black",
 };
 
 export function QuestionCard({
@@ -122,7 +122,7 @@ export function QuestionCard({
           <div
             className={`flex items-center justify-center ${
               coloresPorArea[pregunta.componentes?.nombre || "Default"]
-            } rounded-t-lg h-10 text-white font-bold`}
+            } rounded-t-lg h-10 text-black font-bold bg-gray-200`}
           >
             {pregunta.componentes?.nombre?.toUpperCase()}
           </div>
@@ -152,7 +152,7 @@ export function QuestionCard({
         {/* 🧠 CONTENIDO (SCROLL INTERNO) */}
         <CardContent className="px-5 pb-4 mt-4">
           <RadioGroup
-            value={respuestaSeleccionada}
+            value={respuestaSeleccionada ?? ""}
             onValueChange={handleChange}
             className="space-y-2 sm:space-y-3"
           >
