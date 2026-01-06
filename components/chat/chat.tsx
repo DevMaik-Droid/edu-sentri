@@ -106,17 +106,18 @@ export default function Chat({
         id: "welcome",
         role: "system",
         content: `👋 **¡Hey! Bienvenido a EduSentri** 🎓
-
-          Estoy aquí para ayudarte a **prepararte para el examen ESFM 2026** 💪
-
-          Puedes escribirme cosas como:
+          Estoy aquí para ayudarte a **prepararte para el examen ESFM 2026** 💪`,
+        timestamp: new Date(),
+      },
+      {
+        id: "help",
+        role: "system",
+        content: `Puedes escribirme cosas como:
           - 🧠 **“Dame preguntas de Matemática”**
           - 📊 **“¿Cómo va mi progreso?”**
           - ❓ **“Explícame la pregunta 5 de Psicología”**
           - 📚 **“¿Qué me recomiendas estudiar?”**
-
-          👉 Escribe lo que necesitas y empezamos 🚀
-          `,
+          👉 Escribe lo que necesitas y empezamos 🚀`,
         timestamp: new Date(),
       },
     ]);
