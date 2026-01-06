@@ -58,14 +58,18 @@ export default function Chat({
     null
   );
   const [isLimitDialogOpen, setIsLimitDialogOpen] = useState(false);
+  const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const clearHistory = () => {
-    if (confirm("¿Estás seguro de querer borrar todo el historial del chat?")) {
-      setMessages([]);
-      localStorage.removeItem("edu-sentri-chat-history");
-      setInitialWelcome();
-    }
+  const handleClearHistory = () => {
+    setIsClearDialogOpen(true);
+  };
+
+  const confirmClearHistory = () => {
+    setMessages([]);
+    localStorage.removeItem("edu-sentri-chat-history");
+    setInitialWelcome();
+    setIsClearDialogOpen(false);
   };
 
   // Cargar mensajes del localStorage
@@ -286,20 +290,45 @@ export default function Chat({
         </AlertDialogContent>
       </AlertDialog>
 
+      <AlertDialog open={isClearDialogOpen} onOpenChange={setIsClearDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Borrar historial?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminarán todos los mensajes
+              de este dispositivo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <div className="flex gap-2 justify-end w-full">
+              <Button
+                variant="ghost"
+                onClick={() => setIsClearDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button variant="destructive" onClick={confirmClearHistory}>
+                Borrar todo
+              </Button>
+            </div>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Header Moderno */}
-      <div className="px-6 py-4 border-b bg-muted/30 flex items-center justify-between backdrop-blur-md sticky top-0 z-10">
+      <div className="px-4 py-3 sm:px-6 sm:py-4 border-b bg-muted/30 flex items-center justify-between backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-              <Bot className="w-6 h-6" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <Bot className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 border-2 border-white rounded-full"></span>
           </div>
           <div className="flex flex-col">
-            <h3 className="text-sm font-bold text-foreground leading-none">
-              EduSentri AI (Desarrollo)
+            <h3 className="text-xs sm:text-sm font-bold text-foreground leading-none">
+              EduSentri AI
             </h3>
-            <span className="text-xs text-muted-foreground font-medium mt-1">
+            <span className="text-[10px] sm:text-xs text-muted-foreground font-medium mt-0.5 sm:mt-1">
               Asistente Educativo
             </span>
           </div>
@@ -308,12 +337,12 @@ export default function Chat({
         <div className="flex items-center gap-2">
           {messagesRemaining !== null && (
             <div className="flex flex-col items-end mr-2">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+              <span className="text-[8px] sm:text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
                 Créditos
               </span>
               <span
                 className={cn(
-                  "text-xs font-bold",
+                  "text-[10px] sm:text-xs font-bold",
                   messagesRemaining > 0 ? "text-primary" : "text-destructive"
                 )}
               >
@@ -325,11 +354,11 @@ export default function Chat({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors"
-              onClick={clearHistory}
+              className="h-7 w-7 sm:h-8 sm:w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors"
+              onClick={handleClearHistory}
               title="Limpiar chat"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </Button>
           )}
         </div>
@@ -367,23 +396,23 @@ export default function Chat({
               <div
                 key={msg.id}
                 className={cn(
-                  "flex w-full gap-3",
+                  "flex w-full gap-2 sm:gap-3",
                   isUser ? "flex-row-reverse" : "flex-row"
                 )}
               >
-                <Avatar className="w-8 h-8 sm:w-10 sm:h-10 border shadow-sm shrink-0">
+                <Avatar className="w-7 h-7 sm:w-10 sm:h-10 border shadow-sm shrink-0">
                   {isUser ? (
                     <>
                       <AvatarImage src="/avatars/user.png" alt="Usuario" />
                       <AvatarFallback className="bg-primary/10 text-primary">
-                        <User className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <User className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                       </AvatarFallback>
                     </>
                   ) : (
                     <>
                       <AvatarImage src="/avatars/bot.png" alt="Bot" />
                       <AvatarFallback className="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
-                        <Bot className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <Bot className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                       </AvatarFallback>
                     </>
                   )}
@@ -397,31 +426,31 @@ export default function Chat({
                 >
                   <div
                     className={cn(
-                      "px-4 py-3 shadow-sm text-sm relative group",
+                      "px-4 py-2.5 sm:px-5 sm:py-3.5 shadow-sm text-xs sm:text-sm relative group max-w-full",
                       isUser
-                        ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-sm"
-                        : "bg-muted/50 dark:bg-muted/30 text-foreground border border-border/50 rounded-2xl rounded-tl-sm"
+                        ? "bg-primary text-primary-foreground rounded-[18px] sm:rounded-[20px] rounded-tr-sm"
+                        : "bg-muted/80 backdrop-blur-sm dark:bg-muted/40 text-foreground border border-border/40 rounded-[18px] sm:rounded-[20px] rounded-tl-sm"
                     )}
                   >
                     {msg.role === "system" ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none break-all leading-relaxed">
+                      <div className="prose prose-xs sm:prose-sm dark:prose-invert max-w-none leading-relaxed break-words">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                         {msg.actionUrl && (
                           <Button
                             variant="outline"
                             size="sm"
-                            className="mt-3 w-full sm:w-auto bg-background/50 hover:bg-background border-primary/20 text-primary hover:text-primary"
+                            className="mt-2 sm:mt-3 w-full sm:w-auto h-7 sm:h-9 text-xs sm:text-sm bg-background/50 hover:bg-background border-primary/20 text-primary hover:text-primary"
                             onClick={() =>
                               (window.location.href = msg.actionUrl!)
                             }
                           >
-                            <span className="mr-2">🚀</span> Ver pregunta
-                            generada
+                            <span className="mr-1.5 sm:mr-2">🚀</span> Ver
+                            pregunta generada
                           </Button>
                         )}
                       </div>
                     ) : (
-                      <p className="whitespace-pre-wrap leading-relaxed">
+                      <p className="whitespace-pre-wrap leading-relaxed break-words">
                         {msg.content}
                       </p>
                     )}
@@ -429,7 +458,7 @@ export default function Chat({
 
                   <span
                     className={cn(
-                      "text-[10px] text-muted-foreground mt-1 opacity-0 group-hover:opacity-100 transition-opacity px-1",
+                      "text-[9px] sm:text-[10px] text-muted-foreground mt-1 opacity-0 group-hover:opacity-100 transition-opacity px-1",
                       isUser ? "text-right" : "text-left"
                     )}
                   >
@@ -475,19 +504,19 @@ export default function Chat({
         </div>
 
         {/* Input Area */}
-        <div className="p-4 bg-background/80 backdrop-blur-md border-t">
+        <div className="p-3 sm:p-4 bg-background/80 backdrop-blur-md border-t z-20">
           <form
             onSubmit={sendMessage}
-            className="flex w-full items-end gap-2 relative bg-muted/40 p-1.5 rounded-3xl border focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all"
+            className="flex w-full items-end gap-2 relative bg-muted/30 p-1.5 sm:p-2 rounded-[20px] sm:rounded-[24px] border border-border/40 focus-within:ring-2 focus-within:ring-primary/10 focus-within:border-primary/40 transition-all shadow-sm"
           >
-            <div className="flex-1 min-h-[40px] relative">
+            <div className="flex-1 min-h-[40px] sm:min-h-[44px] relative flex items-center">
               <Input
                 type="text"
                 placeholder="Escribe tu mensaje..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 disabled={isLoading}
-                className="w-full h-full min-h-[40px] border-none bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-4 text-sm resize-none placeholder:text-muted-foreground/60"
+                className="w-full h-full min-h-[20px] border-none bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm resize-none placeholder:text-muted-foreground/60"
                 autoComplete="off"
               />
             </div>
@@ -497,23 +526,23 @@ export default function Chat({
               size="icon"
               disabled={isLoading || !inputValue.trim()}
               className={cn(
-                "rounded-full h-10 w-10 shrink-0 transition-all duration-300",
+                "rounded-full h-9 w-9 sm:h-11 sm:w-11 shrink-0 transition-all duration-300 shadow-sm",
                 inputValue.trim()
-                  ? "bg-primary hover:bg-primary/90 shadow-md scale-100"
-                  : "bg-muted-foreground/20 text-muted-foreground shadow-none scale-90 opacity-70 cursor-not-allowed"
+                  ? "bg-primary hover:bg-primary/90 scale-100"
+                  : "bg-muted-foreground/10 text-muted-foreground/40 shadow-none scale-100 opacity-100 cursor-not-allowed"
               )}
             >
               {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
               ) : (
-                <Send className="h-5 w-5 ml-0.5" />
+                <Send className="h-4 w-4 sm:h-5 sm:w-5 ml-0.5" />
               )}
               <span className="sr-only">Enviar</span>
             </Button>
           </form>
-          <div className="text-center mt-2">
-            <span className="text-[10px] text-muted-foreground/60">
-              La IA puede cometer errores. Verifica la información importante.
+          <div className="text-center mt-2.5">
+            <span className="text-[8px] font-medium text-muted-foreground/40 uppercase tracking-widest">
+              LA IA PUEDE COMETER ERRORES, VERIFICA LA INFORMACIÓN IMPORTANTE.
             </span>
           </div>
         </div>

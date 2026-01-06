@@ -274,6 +274,8 @@ export default function ResultadosPage() {
         return "Nueva Prueba";
       case "demo":
         return "Intentar de nuevo";
+      case "ia":
+        return "Intentar de nuevo";
       default:
         return `Nueva ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
     }
@@ -285,6 +287,10 @@ export default function ResultadosPage() {
       return `/estudiar/practica?area=${encodeURIComponent(
         config.area || "Comprensión Lectora"
       )}`;
+    }
+
+    if (config.tipo === "ia") {
+      return "/ia/preguntas";
     }
 
     // Para pruebas (general, area, demo)

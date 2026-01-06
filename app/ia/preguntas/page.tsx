@@ -90,39 +90,33 @@ export default function IAPreguntasPage() {
     (r) => r.preguntaId === preguntas[preguntaActual].id
   )?.respuestaSeleccionada;
 
+  /*
+   * Maneja la finalización de la prueba:
+   * 1. Guarda los datos necesarios en localStorage para que la página de resultados los consuma.
+   * 2. Redirige a /resultados.
+   */
   if (showResults) {
-    const correctas = preguntas.reduce((acc, p) => {
-      const r = respuestas.find((res) => res.preguntaId === p.id);
-      const correcta = p.opciones.find((o) => o.es_correcta)?.clave;
-      return acc + (r?.respuestaSeleccionada === correcta ? 1 : 0);
-    }, 0);
-    const score = Math.round((correctas / preguntas.length) * 100);
+    // Preparar datos para la página de resultados
+    const preguntasParaResultados = preguntas;
+    const respuestasParaResultados = respuestas;
 
-    return (
-      <div className="bg-background min-h-screen flex flex-col items-center justify-center p-4 animate-in fade-in duration-500">
-        <div className="max-w-md w-full bg-card border rounded-xl shadow-lg p-8 text-center space-y-6">
-          <div className="flex justify-center">
-            <CheckCircle className="w-20 h-20 text-green-500" />
-          </div>
-          <h1 className="text-3xl font-bold">¡Prueba Finalizada!</h1>
-
-          <div className="space-y-2">
-            <p className="text-muted-foreground text-lg">Tu puntuación:</p>
-            <div className="text-5xl font-black text-primary">{score}%</div>
-            <p className="text-sm text-muted-foreground">
-              {correctas} de {preguntas.length} correctas
-            </p>
-          </div>
-
-          <Button
-            onClick={() => window.location.reload()}
-            className="w-full h-12 text-lg"
-          >
-            Volver a intentar
-          </Button>
-        </div>
-      </div>
+    // Guardar en localStorage temporal (protocolo de comunicación con ResultadosPage)
+    localStorage.setItem(
+      "temp_preguntas",
+      JSON.stringify(preguntasParaResultados)
     );
+    localStorage.setItem(
+      "temp_respuestas",
+      JSON.stringify(respuestasParaResultados)
+    );
+    localStorage.setItem("temp_tipo", "ia");
+    localStorage.setItem("temp_area", "Inteligencia Artificial"); // O algo genérico si no hay área específica
+
+    // Redirigir
+    router.push("/resultados");
+
+    // Retornar null o loader mientras redirige
+    return <LoadingLottie message="Calculando resultados..." />;
   }
 
   if (preguntas.length === 0) {
