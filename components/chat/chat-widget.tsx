@@ -34,7 +34,7 @@ export function ChatWidget() {
               <X className="w-4 h-4" />
             </Button>
             <Chat
-              apiEndpoint={process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || ""}
+              apiEndpoint="/api/n8n"
               className="h-full border-0 shadow-none"
             />
           </div>

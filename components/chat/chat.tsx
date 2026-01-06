@@ -415,7 +415,8 @@ export default function Chat({
                               (window.location.href = msg.actionUrl!)
                             }
                           >
-                            <span className="mr-2">🚀</span> Ver pregunta generada
+                            <span className="mr-2">🚀</span> Ver pregunta
+                            generada
                           </Button>
                         )}
                       </div>
@@ -487,7 +488,7 @@ export default function Chat({
                 onChange={(e) => setInputValue(e.target.value)}
                 disabled={isLoading}
                 className="w-full h-full min-h-[40px] border-none bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-4 text-sm resize-none placeholder:text-muted-foreground/60"
-                autoComplete="off"  
+                autoComplete="off"
               />
             </div>
 
