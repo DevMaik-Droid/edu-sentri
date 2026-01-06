@@ -55,6 +55,7 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import ClientLayout from "../../ClientLayout";
+import { useChatVisibility } from "@/context/chat-visibility-context";
 
 const AREAS_CON_DISCIPLINAS: Record<string, string[]> = {
   "Razonamiento Lógico": [
@@ -83,6 +84,7 @@ export default function PracticaAreaContent() {
   const router = useRouter();
   const area = searchParams.get("area") || "";
   const isComprensionLectora = area === "Comprensión Lectora";
+  const { setVisibility } = useChatVisibility();
 
   // Estados de configuración
   const [configurado, setConfigurado] = useState(false);
@@ -125,6 +127,21 @@ export default function PracticaAreaContent() {
   const queueRef = useRef<string[]>([]);
   const currentChunkIndexRef = useRef(0);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Controlar visibilidad del chat basado en el estado
+  useEffect(() => {
+    // Ocultar chat si NO está configurado (fase de configuración)
+    // O si está en fase de selección de textos
+    if (!configurado || (isComprensionLectora && fase === "seleccion-textos")) {
+      setVisibility(false);
+    } else {
+      // Mostrar chat en otras fases (lectura, preguntas)
+      setVisibility(true);
+    }
+
+    // Al desmontar, restaurar chat visible (opcional, pero buena práctica)
+    return () => setVisibility(true);
+  }, [isComprensionLectora, setVisibility, configurado, fase]);
 
   // Cargar voces disponibles
   useEffect(() => {
@@ -997,7 +1014,7 @@ export default function PracticaAreaContent() {
 
   return (
     <ClientLayout>
-      <div className="bg-background h-full">
+      <div className="bg-background h-[calc(100vh-4rem)]">
         <div className="container mx-auto px-4 py-2 sm:py-8 h-full flex flex-col">
           {/* PROGRESO */}
           <div className="mb-4 sm:mb-6 shrink-0">
@@ -1037,7 +1054,7 @@ export default function PracticaAreaContent() {
           </div>
 
           {/* BOTONES (SIEMPRE ABAJO) */}
-          <div className="grid grid-cols-3 gap-3 mt-4 shrink-0">
+          <div className="grid grid-cols-3 gap-3 mt-4 shrink-0 max-w-[80%]">
             <Button
               variant="outline"
               onClick={handleAnterior}
@@ -1071,7 +1088,7 @@ export default function PracticaAreaContent() {
           </div>
 
           {/* ESTADO */}
-          <div className="mt-3 text-center text-sm text-muted-foreground shrink-0">
+          <div className="text-center text-sm text-muted-foreground mt-2">
             {Object.keys(respuestas).length} de {preguntas.length} respondidas
           </div>
         </div>

@@ -141,7 +141,7 @@ export default function IAPreguntasPage() {
         <div className="mb-4 sm:mb-6 shrink-0 flex flex-col gap-4">
           <div className="flex items-center gap-2 text-primary font-bold text-lg">
             <Bot className="w-6 h-6" />
-            <span>Preguntas IA</span>
+            <span>Preguntas por IA</span>
           </div>
 
           <div className="w-full">

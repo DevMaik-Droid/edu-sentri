@@ -105,8 +105,18 @@ export default function Chat({
       {
         id: "welcome",
         role: "system",
-        content:
-          "¡Hola! Soy tu asistente de EduSentri. Estoy aquí para ayudarte a potenciar tu aprendizaje. ¿Qué quieres repasar hoy?",
+        content: `👋 **¡Hey! Bienvenido a EduSentri** 🎓
+
+          Estoy aquí para ayudarte a **prepararte para el examen ESFM 2026** 💪
+
+          Puedes escribirme cosas como:
+          - 🧠 **“Dame preguntas de Matemática”**
+          - 📊 **“¿Cómo va mi progreso?”**
+          - ❓ **“Explícame la pregunta 5 de Psicología”**
+          - 📚 **“¿Qué me recomiendas estudiar?”**
+
+          👉 Escribe lo que necesitas y empezamos 🚀
+          `,
         timestamp: new Date(),
       },
     ]);
@@ -216,7 +226,6 @@ export default function Chat({
 
       const data = await response.json();
 
-
       let botResponseText = "";
 
       if ((data.success === true || data.success === "true") && data.mensaje) {
@@ -269,7 +278,7 @@ export default function Chat({
   return (
     <Card
       className={cn(
-        "w-full h-[600px] flex flex-col shadow-xl border-none rounded-2xl overflow-hidden bg-background/95 backdrop-blur-sm",
+        "w-full h-[600px] flex flex-col shadow-xl border-none rounded-2xl overflow-hidden bg-background/90 backdrop-blur-sm",
         className
       )}
     >
@@ -419,7 +428,7 @@ export default function Chat({
 
                 <div
                   className={cn(
-                    "flex flex-col max-w-[85%] sm:max-w-[75%]",
+                    "flex flex-col max-w-[90%] sm:max-w-[85%]",
                     isUser ? "items-end" : "items-start"
                   )}
                 >
@@ -432,7 +441,7 @@ export default function Chat({
                     )}
                   >
                     {msg.role === "system" ? (
-                      <div className="prose prose-xs sm:prose-sm dark:prose-invert max-w-none leading-relaxed break-words">
+                      <div className="prose prose-xs sm:prose-sm dark:prose-invert max-w-none leading-relaxed wrap-break-word">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                         {msg.actionUrl && (
                           <Button
@@ -449,7 +458,7 @@ export default function Chat({
                         )}
                       </div>
                     ) : (
-                      <p className="whitespace-pre-wrap leading-relaxed break-words">
+                      <p className="whitespace-pre-wrap leading-relaxed wrap-break-word">
                         {msg.content}
                       </p>
                     )}
@@ -503,19 +512,19 @@ export default function Chat({
         </div>
 
         {/* Input Area */}
-        <div className="p-3 sm:p-4 bg-background/80 backdrop-blur-md border-t z-20">
+        <div className="p-2 sm:px-4 bg-background/80 backdrop-blur-md border-t z-20">
           <form
             onSubmit={sendMessage}
             className="flex w-full items-end gap-2 relative bg-muted/30 p-1.5 sm:p-2 rounded-[20px] sm:rounded-[24px] border border-border/40 focus-within:ring-2 focus-within:ring-primary/10 focus-within:border-primary/40 transition-all shadow-sm"
           >
-            <div className="flex-1 min-h-[40px] sm:min-h-[44px] relative flex items-center">
+            <div className="flex-1 min-h-[40px] sm:min-h-[40px] relative flex items-center">
               <Input
                 type="text"
                 placeholder="Escribe tu mensaje..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 disabled={isLoading}
-                className="w-full h-full min-h-[20px] border-none bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm resize-none placeholder:text-muted-foreground/60"
+                className="p-0 m-0 w-full h-full min-h-[20px] border-none bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-3 sm:px-4 py-1.5 sm:py-0 text-xs sm:text-sm resize-none placeholder:text-muted-foreground/60"
                 autoComplete="off"
               />
             </div>

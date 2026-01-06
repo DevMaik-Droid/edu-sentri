@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { ChatWidget } from "@/components/chat/chat-widget";
+import { ChatVisibilityProvider } from "@/context/chat-visibility-context";
 
 export default async function DashboardLayout({
   children,
@@ -31,9 +32,9 @@ export default async function DashboardLayout({
 
   // 5️⃣ Todo correcto
   return (
-    <>
+    <ChatVisibilityProvider>
       {children}
       <ChatWidget />
-    </>
+    </ChatVisibilityProvider>
   );
 }

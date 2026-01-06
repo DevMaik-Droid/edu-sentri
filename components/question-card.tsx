@@ -46,7 +46,7 @@ const coloresPorArea: ColoresPorArea = {
   "Conocimientos Generales": "bg-green-600 text-white",
   "Comprensión Lectora": "bg-violet-600 text-white",
   "Habilidades Socioemocionales": "bg-pink-600 text-white",
-  Default: "bg-gray-600 text-black",
+  Default: "bg-blue-600 text-black",
 };
 
 const coloresPorDisciplina: ColoresPorArea = {
@@ -122,7 +122,7 @@ export function QuestionCard({
           <div
             className={`flex items-center justify-center ${
               coloresPorArea[pregunta.componentes?.nombre || "Default"]
-            } rounded-t-lg h-10 text-black font-bold bg-gray-200`}
+            } rounded-t-lg h-10 text-black font-bold`}
           >
             {pregunta.componentes?.nombre?.toUpperCase()}
           </div>
