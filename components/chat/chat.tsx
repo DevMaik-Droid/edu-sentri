@@ -216,7 +216,6 @@ export default function Chat({
 
       const data = await response.json();
 
-      console.log("Respuesta del backend:", data);
 
       let botResponseText = "";
 
