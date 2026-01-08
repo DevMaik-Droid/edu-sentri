@@ -48,7 +48,8 @@ export default function ClientLayout({
         (key) =>
           key.startsWith("texto_") ||
           key.startsWith("temp_") ||
-          key === "edu_sentri_historial"
+          key === "edu_sentri_historial" ||
+          key === "prueba_demo"
       );
 
       keysToRemove.forEach((key) => {

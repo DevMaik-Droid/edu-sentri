@@ -530,26 +530,26 @@ export default function PruebaPage() {
                     Ver Texto
                   </Button>
                 )}
+                {/* Botón ver texto individual si la pregunta lo requiere (para otros casos) */}
+                {area !== "Comprensión Lectora" &&
+                  preguntas[preguntaActual]?.texto_lectura_id && (
+                    <div className="flex justify-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowTextoDialog(true)}
+                        className="h-6 sm:h-8 gap-2 text-purple-600 border-purple-600 hover:bg-purple-200/70 hover:text-purple-600
+                        hover:border-purple-600 transition-colors text-xs font-medium cursor-pointer"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Ver Texto
+                      </Button>
+                    </div>
+                  )}
 
                 <span>Total {preguntas.length}</span>
               </div>
             </div>
-
-            {/* Botón ver texto individual si la pregunta lo requiere (para otros casos) */}
-            {area !== "Comprensión Lectora" &&
-              preguntas[preguntaActual]?.texto_lectura_id && (
-                <div className="flex justify-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowTextoDialog(true)}
-                    className="h-8 gap-2 text-primary border-primary/20 hover:border-primary/50"
-                  >
-                    <Eye className="w-4 h-4" />
-                    Ver Texto de Lectura
-                  </Button>
-                </div>
-              )}
           </div>
         </div>
 
