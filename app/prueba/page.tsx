@@ -500,9 +500,9 @@ export default function PruebaPage() {
 
   return (
     <div className="bg-background min-h-screen flex flex-col">
-      <div className="container min-h-screen mx-auto px-4 py-4 sm:py-8 flex flex-col h-full">
+      <div className="container h-screen mx-auto px-4 py-4 sm:py-8 flex flex-col">
         {/* 🔝 PROGRESO (FIJO ARRIBA) */}
-        <div className="mb-4 sm:mb-6 animate-in fade-in slide-in-from-top-1 duration-500 shrink-0">
+        <div className=" sm:mb-6 animate-in fade-in slide-in-from-top-1 duration-500 shrink-0">
           <div className="flex flex-col gap-2">
             <div
               className={`text-center font-mono font-bold text-xl ${
@@ -522,7 +522,9 @@ export default function PruebaPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setShowTextoDialog(true)}
-                    className="h-6 gap-1.5 text-xs font-medium text-primary hover:text-primary/80"
+                    className="h-6 text-purple-600
+                     border border-purple-600 hover:bg-purple-200/70 hover:text-purple-600
+                      hover:border-purple-600 transition-colors gap-1.5 text-xs font-medium"
                   >
                     <Eye className="w-3 h-3" />
                     Ver Texto
@@ -554,7 +556,7 @@ export default function PruebaPage() {
         {/* 🧠 CONTENEDOR DE LA PREGUNTA (SCROLL INTERNO) */}
         <div
           key={preguntaActual}
-          className="flex-1 animate-in fade-in slide-in-from-right-4 duration-300 min-h-0 relative"
+          className="flex-1 animate-in fade-in slide-in-from-right-4 duration-300 min-h-0 relative overflow-y-auto"
         >
           <QuestionCard
             pregunta={preguntas[preguntaActual]}
