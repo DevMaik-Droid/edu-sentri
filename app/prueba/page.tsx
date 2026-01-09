@@ -3,10 +3,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { RespuestaUsuario, Area, PreguntaUI } from "@/types/pregunta";
-import { seleccionarPreguntasDemo } from "@/lib/seleccionar-preguntas";
 import { QuestionCard } from "@/components/question-card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle, Grid3x3 } from "lucide-react";
 import {
   obtenerPreguntasPorArea,
   obtenerPreguntasAleatoriasPorArea,
@@ -49,6 +48,7 @@ export default function PruebaPage() {
 
   // States for reading comprehension text
   const [showTextoDialog, setShowTextoDialog] = useState(false);
+  const [showNavigatorDialog, setShowNavigatorDialog] = useState(false);
 
   // States for selected texts in Comprensión Lectora
   const [textosSeleccionados, setTextosSeleccionados] = useState<
@@ -151,7 +151,36 @@ export default function PruebaPage() {
 
       setLoading(true);
 
-      // 1. Intentar cargar sesión activa
+      // 0. Intentar cargar desde retry (sessionStorage)
+      const retry = searchParams.get("retry") === "true";
+      if (retry) {
+        const sessionData = sessionStorage.getItem("session_test_data");
+        if (sessionData) {
+          const {
+            preguntas: retryPreguntas,
+            tipo: retryTipo,
+            area: retryArea,
+          } = JSON.parse(sessionData);
+          // Verificar que el tipo y área coincidan para evitar errores
+          if (retryTipo === tipo && retryArea === area) {
+            setPreguntas(retryPreguntas);
+            setRespuestas([]);
+            setPreguntaActual(0);
+
+            // Re-inicializar tiempo según el tipo
+            let initialTime = 7200;
+            if (tipo === "demo") initialTime = 600;
+            else if (tipo === "area") initialTime = tiempoSeleccionado || 7200;
+
+            setTimeLeft(initialTime);
+            persistSession(retryPreguntas, [], 0, initialTime);
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
+      // 1. Intentar cargar sesión activa (continuar donde se dejó)
       const session = getActiveSession(tipo, area);
       if (session && session.preguntas.length > 0) {
         setPreguntas(session.preguntas);
@@ -252,7 +281,7 @@ export default function PruebaPage() {
     if (tipo) {
       cargarPreguntas();
     }
-  }, [area, router, tipo, persistSession, tiempoSeleccionado]);
+  }, [area, router, tipo, persistSession, tiempoSeleccionado, searchParams]);
 
   // Effect to load text when question changes
   useEffect(() => {
@@ -370,6 +399,12 @@ export default function PruebaPage() {
       setPreguntaActual(newIndex);
       persistSession(preguntas, respuestas, newIndex, timeLeft);
     }
+  };
+
+  const handleGoToQuestion = (index: number) => {
+    setPreguntaActual(index);
+    persistSession(preguntas, respuestas, index, timeLeft);
+    setShowNavigatorDialog(false);
   };
 
   /* ───────────────── FINALIZAR ───────────────── */
@@ -569,17 +604,26 @@ export default function PruebaPage() {
         </div>
 
         {/* 🔽 BOTONES (SIEMPRE ABAJO) */}
-        <div className="mt-4 grid grid-cols-3 gap-3 shrink-0">
+        <div className="mt-4 flex items-stretch gap-3 shrink-0">
           <Button
             variant="outline"
             size="lg"
             onClick={handleAnterior}
             disabled={preguntaActual === 0}
-            className="gap-2 bg-card h-12 transition-all duration-200 hover:scale-105"
+            className="gap-2 bg-card h-12 transition-all duration-200 hover:scale-102 flex-1"
           >
             <ChevronLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Anterior</span>
             <span className="sm:hidden">Atrás</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => setShowNavigatorDialog(true)}
+            className="gap-2 bg-card h-12 transition-all duration-200 hover:scale-102 border-primary/50 text-primary hover:bg-primary/10 cursor-pointer max-w-14"
+          >
+            <Grid3x3 className="w-4 h-4" />
           </Button>
 
           {preguntaActual === preguntas.length - 1 ? (
@@ -587,20 +631,22 @@ export default function PruebaPage() {
               size="lg"
               onClick={handleFinalizar}
               disabled={respuestas.length !== preguntas.length}
-              className="col-span-2 gap-2 h-12 transition-all duration-200 hover:scale-105"
+              className="gap-2 h-12 transition-all duration-200 hover:scale-102 flex-1"
             >
               <CheckCircle className="w-4 h-4" />
-              Finalizar Prueba
+              <span className="hidden sm:inline">Finalizar Prueba</span>
+              <span className="sm:hidden">Finalizar</span>
             </Button>
           ) : (
             <Button
               size="lg"
               onClick={handleSiguiente}
-              className="col-span-2 gap-2 h-12 transition-all duration-200 hover:scale-105"
+              className="gap-2 h-12 transition-all duration-200 hover:scale-102 flex-1"
             >
               <span className="hidden sm:inline">Siguiente</span>
               <span className="sm:hidden">Continuar</span>
               <ChevronRight className="w-4 h-4" />
+              
             </Button>
           )}
         </div>
@@ -686,6 +732,76 @@ export default function PruebaPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* AlertDialog para navegador de preguntas */}
+      <AlertDialog
+        open={showNavigatorDialog}
+        onOpenChange={setShowNavigatorDialog}
+      >
+        <AlertDialogContent className="max-w-[80vw] max-h-[80vh] overflow-hidden flex flex-col">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Grid3x3 className="w-5 h-5 text-primary" />
+              Navegador de Preguntas
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Haz clic en cualquier pregunta para navegar a ella. Las preguntas
+              respondidas están marcadas en verde, las no respondidas en gris
+              con advertencia.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex-1 overflow-y-auto pr-2 py-4">
+            <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 m-2">
+              {preguntas.map((pregunta, index) => {
+                const isAnswered = respuestas.some(
+                  (r) => r.preguntaId === pregunta.id
+                );
+                const isCurrent = index === preguntaActual;
+
+                return (
+                  <button
+                    key={pregunta.id}
+                    onClick={() => handleGoToQuestion(index)}
+                    className={`relative aspect-square rounded-lg border-2 flex items-center justify-center font-bold text-sm transition-all hover:scale-110 ${
+                      isCurrent
+                        ? "border-primary bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
+                        : isAnswered
+                        ? "border-green-500 bg-green-500 text-white hover:bg-green-600"
+                        : "border-orange-400 bg-orange-50 text-orange-700 hover:bg-orange-100"
+                    } cursor-pointer`}
+                  >
+                    {index + 1}
+                    {!isAnswered && !isCurrent && (
+                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white"></span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground border-t pt-3">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded bg-green-500"></div>
+              <span>Respondidas ({respuestas.length})</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded bg-orange-50 border-2 border-orange-400 relative">
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
+              </div>
+              <span>
+                Sin responder ({preguntas.length - respuestas.length})
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded border-2 border-primary bg-primary"></div>
+              <span>Actual</span>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cerrar</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={showTimeSelector}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -701,7 +817,7 @@ export default function PruebaPage() {
                 setShowTimeSelector(false);
               }}
               variant="outline"
-              className="h-20 flex flex-col gap-1"
+              className="h-20 flex flex-col gap-1 cursor-pointer"
             >
               <span className="text-xl font-bold">30</span>
               <span className="text-xs">Minutos</span>

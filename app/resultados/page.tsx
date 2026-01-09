@@ -8,23 +8,32 @@ import type {
   Resultado,
   Area,
 } from "@/types/pregunta";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import {
   CheckCircle2,
-  XCircle,
   Home,
   TrendingUp,
   Sparkles,
   RotateCcw,
+  FileText,
 } from "lucide-react";
 import { guardarIntentoSupabase } from "@/services/intentos";
 import { saveLocalHistory, addToReviewQueue } from "@/lib/local-storage";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 export default function ResultadosPage() {
   const router = useRouter();
   const [resultado, setResultado] = useState<Resultado | null>(null);
+  const [showRestartDialog, setShowRestartDialog] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [retryConfig, setRetryConfig] = useState<{
     tipo: string;
@@ -32,7 +41,7 @@ export default function ResultadosPage() {
   }>({ tipo: "general" });
 
   useEffect(() => {
-    // Obtener datos desde localStorage temporal
+    // 1. Intentar obtener datos desde localStorage temporal (flujo normal al terminar prueba)
     const preguntasStr = localStorage.getItem("temp_preguntas");
     const respuestasStr = localStorage.getItem("temp_respuestas");
     const tipoPrueba = localStorage.getItem("temp_tipo") || "general";
@@ -40,15 +49,64 @@ export default function ResultadosPage() {
     const disciplinaPrueba =
       localStorage.getItem("temp_disciplina") || undefined;
 
-    setRetryConfig({ tipo: tipoPrueba, area: areaPrueba || null });
+    // 2. Si no hay en localStorage, intentar recuperar de sessionStorage (flujo al volver/recargar)
+    const sessionDataStr = sessionStorage.getItem("session_test_data");
 
-    if (!preguntasStr || !respuestasStr) {
+    if (!preguntasStr && !sessionDataStr) {
+      // Si no hay datos en ninguno de los dos sitios, redirigir
       router.push("/");
       return;
     }
 
-    const preguntas: PreguntaUI[] = JSON.parse(preguntasStr);
-    const respuestas: RespuestaUsuario[] = JSON.parse(respuestasStr);
+    let preguntas: PreguntaUI[];
+    let respuestas: RespuestaUsuario[];
+    let tipo: string;
+    let area: string | undefined | null;
+    let disciplina: string | undefined;
+
+    // Determinar origen de datos
+    if (preguntasStr && respuestasStr) {
+      // Caso A: Venimos de terminar una prueba (LocalStorage)
+      preguntas = JSON.parse(preguntasStr);
+      respuestas = JSON.parse(respuestasStr);
+      tipo = tipoPrueba;
+      area = areaPrueba;
+      disciplina = disciplinaPrueba;
+
+      // Guardar en sessionStorage para persistencia
+      sessionStorage.setItem(
+        "session_test_data",
+        JSON.stringify({
+          preguntas,
+          respuestas,
+          tipo,
+          area,
+          disciplina,
+        })
+      );
+
+      // Limpiar localStorage temporal
+      localStorage.removeItem("temp_preguntas");
+      localStorage.removeItem("temp_respuestas");
+      localStorage.removeItem("temp_tipo");
+      localStorage.removeItem("temp_area");
+      localStorage.removeItem("temp_disciplina");
+
+      // Solo guardar en Supabase si es un NUEVO intento (venimos de localStorage)
+      guardarIntento(preguntas, respuestas, tipo, area, disciplina);
+    } else if (sessionDataStr) {
+      // Caso B: Recarga o navegación (SessionStorage)
+      const sessionData = JSON.parse(sessionDataStr);
+      preguntas = sessionData.preguntas;
+      respuestas = sessionData.respuestas;
+      tipo = sessionData.tipo;
+      area = sessionData.area;
+      disciplina = sessionData.disciplina;
+    } else {
+      return; // Should not happen due to check above
+    }
+
+    setRetryConfig({ tipo, area: area || null });
 
     // Calcular resultados
     let correctas = 0;
@@ -62,8 +120,8 @@ export default function ResultadosPage() {
 
       if (esCorrecta) correctas++;
 
-      // Guardar pregunta incorrecta para repaso (Local Storage)
-      if (!esCorrecta) {
+      // Guardar pregunta incorrecta para repaso (Local Storage) - Solo si venimos de nuevo intento
+      if (!esCorrecta && preguntasStr) {
         addToReviewQueue(pregunta);
       }
 
@@ -96,67 +154,69 @@ export default function ResultadosPage() {
       porArea: resultadosPorArea,
     });
 
-    // Guardar intento en Supabase
-    const guardarIntento = async () => {
-      try {
-        const result = await guardarIntentoSupabase({
-          tipo: tipoPrueba,
-          area: areaPrueba,
-          totalPreguntas: preguntas.length,
-          correctas,
-          incorrectas,
-          porcentaje,
-          disciplina: disciplinaPrueba,
-          preguntas,
-          respuestas,
-        });
-
-        if (result.success && result.intentoId) {
-          // Actualizar el historial local si hubo una mejora
-          if (result.mejorado) {
-            saveLocalHistory({
-              id: result.intentoId,
-              fecha: new Date(),
-              tipo: tipoPrueba,
-              area: areaPrueba,
-              totalPreguntas: preguntas.length,
-              correctas,
-              incorrectas,
-              porcentaje,
-              disciplina: disciplinaPrueba,
-            });
-
-            console.log(
-              "🎉 ¡Nuevo récord guardado! Has superado tu mejor intento anterior."
-            );
-          } else {
-            console.log(
-              "📊 Intento completado. No superó el récord anterior, no se guardó en Supabase."
-            );
-          }
-        } else if (result.guardadoLocal && !result.success) {
-          console.log(
-            "⚠️ Error guardando en Supabase, pero se guardó localmente."
-          );
-        }
-
-        // Limpiar localStorage temporal después de procesar
-        localStorage.removeItem("temp_preguntas");
-        localStorage.removeItem("temp_respuestas");
-        localStorage.removeItem("temp_tipo");
-        localStorage.removeItem("temp_area");
-        localStorage.removeItem("temp_disciplina");
-      } catch (error) {
-        console.error("Error al guardar intento:", error);
-      }
-    };
-
-    guardarIntento();
-
     if (porcentaje >= 70) {
       setTimeout(() => setShowConfetti(true), 500);
     }
   }, [router]);
+
+  // Función separada para guardar solo cuando sea necesario
+  const guardarIntento = async (
+    preguntas: PreguntaUI[],
+    respuestas: RespuestaUsuario[],
+    tipo: string,
+    area?: string | null,
+    disciplina?: string
+  ) => {
+    try {
+      // Recalcular stats simples para el guardado
+      let correctas = 0;
+      preguntas.forEach((p) => {
+        const r = respuestas.find((res) => res.preguntaId === p.id);
+        const oq = p.opciones.find((o) => o.es_correcta);
+        if (r?.respuestaSeleccionada === oq?.clave) correctas++;
+      });
+      const incorrectas = preguntas.length - correctas;
+      const porcentaje = (correctas / preguntas.length) * 100;
+
+      const result = await guardarIntentoSupabase({
+        tipo,
+        totalPreguntas: preguntas.length,
+        correctas,
+        incorrectas,
+        porcentaje,
+        disciplina,
+        preguntas,
+        respuestas,
+      });
+
+      if (result.success && result.intentoId) {
+        // Actualizar el historial local si hubo una mejora
+        if (result.mejorado) {
+          saveLocalHistory({
+            id: result.intentoId,
+            fecha: new Date(),
+            tipo,
+            totalPreguntas: preguntas.length,
+            correctas,
+            incorrectas,
+            porcentaje,
+            disciplina,
+          });
+          console.log(
+            "🎉 ¡Nuevo récord guardado! Has superado tu mejor intento anterior."
+          );
+        } else {
+          console.log("📊 Intento completado. No superó el récord anterior.");
+        }
+      } else if (result.guardadoLocal && !result.success) {
+        console.log(
+          "⚠️ Error guardando en Supabase, pero se guardó localmente."
+        );
+      }
+    } catch (error) {
+      console.error("Error al guardar intento:", error);
+    }
+  };
 
   if (!resultado) {
     return (
@@ -304,6 +364,23 @@ export default function ResultadosPage() {
     return url;
   };
 
+  // Handler para "Revisar" - navegar a página de revisión
+  const handleReview = () => {
+    router.push("/resultados/revision");
+  };
+
+  // Handler para "Intentar de Nuevo" - cargar las mismas preguntas
+  const handleTryAgain = () => {
+    const url = getRetryUrl(retryConfig);
+    router.push(`${url}${url.includes("?") ? "&" : "?"}retry=true`);
+  };
+
+  // Handler para "Nuevo Simulacro" - limpiar sesión y cargar nuevas preguntas
+  const handleNewTest = () => {
+    sessionStorage.removeItem("session_test_data");
+    router.push(getRetryUrl(retryConfig));
+  };
+
   return (
     <div className="min-h-screen bg-background py-8 sm:py-12 relative overflow-hidden">
       {/* Confetti container (existing logic) */}
@@ -391,175 +468,85 @@ export default function ResultadosPage() {
           </Card>
         </div>
 
-        {/* Areas Breakdown */}
-        <Card className="mb-8 border shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-          <CardHeader className="border-b bg-muted/20">
-            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              Desglose por Área
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-5">
-              {resultado.porArea.map((area) => (
-                <div key={area.area} className="space-y-2">
-                  <div className="flex justify-between items-end gap-4">
-                    <span className="font-medium text-sm sm:text-base">
-                      {area.area}
-                    </span>
-                    <div className="text-right">
-                      <span
-                        className={`text-sm font-bold ${
-                          area.porcentaje >= 80
-                            ? "text-green-600"
-                            : area.porcentaje >= 60
-                            ? "text-yellow-600"
-                            : "text-orange-600"
-                        }`}
-                      >
-                        {area.porcentaje.toFixed(0)}%
-                      </span>
-                      <span className="text-xs text-muted-foreground ml-1">
-                        ({area.correctas}/{area.total})
-                      </span>
-                    </div>
-                  </div>
-                  <Progress
-                    value={area.porcentaje}
-                    className="h-2.5 bg-muted"
-                  />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
         {/* Actions */}
-        <div className="flex flex-col mb-8 sm:flex-row gap-3 sm:gap-4 justify-center items-center animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300">
+        <div className={`grid gap-3 mb-8 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300 ${retryConfig.tipo === "demo" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-3"}`}>
+          <Button
+            onClick={handleReview}
+            size="lg"
+            className="w-full gap-2 shadow-lg hover:scale-105 transition-transform"
+          >
+            <FileText className="w-4 h-4" />
+            Revisar
+          </Button>
+          {retryConfig.tipo !== "demo" && (
+            <Button
+              onClick={() => setShowRestartDialog(true)}
+              variant="outline"
+              size="lg"
+              className="w-full gap-2 hover:bg-muted"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Nueva Prueba
+            </Button>
+          )}
           <Button
             onClick={() => router.push("/dashboard")}
             variant="outline"
-            className="w-full sm:w-auto gap-2 hover:bg-muted"
+            size="lg"
+            className="w-full gap-2 hover:bg-muted"
           >
             <Home className="w-4 h-4" />
-            Volver al Inicio
-          </Button>
-          <Button
-            onClick={() => router.push(getRetryUrl(retryConfig))}
-            size="lg"
-            className="w-full sm:w-auto gap-2 shadow-lg hover:scale-105 transition-transform"
-          >
-            <RotateCcw className="w-4 h-4" />
-            {getRetryLabel(retryConfig.tipo)}
+            Inicio
           </Button>
         </div>
-
-        {/* Detailed Question Analysis */}
-        <Card className="mb-8 border shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
-          <CardHeader className="border-b bg-muted/20">
-            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-primary" />
-              Revisión de Preguntas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-6">
-              {(() => {
-                // Recover questions and answers logic locally since we need it for rendering
-                const preguntasStr = localStorage.getItem("temp_preguntas");
-                const respuestasStr = localStorage.getItem("temp_respuestas");
-
-                if (!preguntasStr || !respuestasStr) return null;
-
-                const preguntas: PreguntaUI[] = JSON.parse(preguntasStr);
-                const respuestas: RespuestaUsuario[] =
-                  JSON.parse(respuestasStr);
-
-                return preguntas.map((pregunta, index) => {
-                  const respuestaUsuario = respuestas.find(
-                    (r) => r.preguntaId === pregunta.id
-                  );
-                  const opcionCorrecta = pregunta.opciones.find(
-                    (o) => o.es_correcta
-                  );
-                  const opcionUsuario = pregunta.opciones.find(
-                    (o) => o.clave === respuestaUsuario?.respuestaSeleccionada
-                  );
-                  const esCorrecta = opcionUsuario?.es_correcta || false;
-
-                  return (
-                    <div
-                      key={pregunta.id}
-                      className="border rounded-lg p-4 space-y-3 bg-card/50"
-                    >
-                      <div className="flex gap-3">
-                        <div className="mt-1">
-                          {esCorrecta ? (
-                            <CheckCircle2 className="w-5 h-5 text-green-500" />
-                          ) : (
-                            <XCircle className="w-5 h-5 text-red-500" />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-sm sm:text-base mb-2">
-                            {index + 1}. {pregunta.enunciado}
-                          </h3>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mt-3">
-                            <div
-                              className={`p-3 rounded-md ${
-                                esCorrecta
-                                  ? "bg-green-500/10 border border-green-200 dark:border-green-900"
-                                  : "bg-red-500/10 border border-red-200 dark:border-red-900"
-                              }`}
-                            >
-                              <p className="font-medium mb-1 text-xs uppercase tracking-wide opacity-70">
-                                Tu Respuesta
-                              </p>
-                              <p
-                                className={
-                                  esCorrecta
-                                    ? "text-green-700 dark:text-green-300"
-                                    : "text-red-700 dark:text-red-300"
-                                }
-                              >
-                                {opcionUsuario
-                                  ? `${opcionUsuario.clave}) ${opcionUsuario.texto}`
-                                  : "No respondida"}
-                              </p>
-                            </div>
-
-                            {!esCorrecta && (
-                              <div className="p-3 rounded-md bg-green-500/10 border border-green-200 dark:border-green-900">
-                                <p className="font-medium mb-1 text-xs uppercase tracking-wide opacity-70">
-                                  Respuesta Correcta
-                                </p>
-                                <p className="text-green-700 dark:text-green-300">
-                                  {opcionCorrecta
-                                    ? `${opcionCorrecta.clave}) ${opcionCorrecta.texto}`
-                                    : "No disponible"}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-
-                          {pregunta.sustento && (
-                            <div className="mt-3 text-xs sm:text-sm text-muted-foreground bg-muted/30 p-3 rounded-md">
-                              <span className="font-semibold">
-                                Explicación:{" "}
-                              </span>
-                              {pregunta.sustento}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-          </CardContent>
-        </Card>
       </div>
+
+      {/* AlertDialog for restart options */}
+      <AlertDialog open={showRestartDialog} onOpenChange={setShowRestartDialog}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <RotateCcw className="w-5 h-5 text-primary" />
+              Nueva Prueba
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Cómo deseas continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="grid gap-3 py-4">
+            <Button
+              onClick={() => {
+                setShowRestartDialog(false);
+                handleNewTest();
+              }}
+              size="lg"
+              className="h-16 flex flex-col gap-1 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            >
+              <Sparkles className="w-5 h-5" />
+              <span className="font-bold">Nuevas Preguntas</span>
+              <span className="text-xs opacity-90">
+                Generar un nuevo examen
+              </span>
+            </Button>
+            <Button
+              onClick={() => {
+                setShowRestartDialog(false);
+                handleTryAgain();
+              }}
+              size="lg"
+              variant="outline"
+              className="h-16 flex flex-col gap-1 border-2"
+            >
+              <RotateCcw className="w-5 h-5" />
+              <span className="font-bold">Mismas Preguntas</span>
+              <span className="text-xs opacity-70">Repetir este examen</span>
+            </Button>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
