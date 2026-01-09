@@ -403,7 +403,7 @@ export default function ResultadosPage() {
         </div>
       )}
 
-      <div className="container mx-auto px-4 max-w-4xl relative z-10">
+      <div className="container min-h-screen px-4 max-w-4xl relative z-10">
         <div className="flex flex-col items-center justify-center mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
           {/* Main Score Card */}
           <Card
@@ -412,7 +412,7 @@ export default function ResultadosPage() {
             <div
               className={`h-2 w-full ${feedback?.bgColor.replace("/10", "")}`}
             />
-            <CardContent className="pt-8 pb-8 flex flex-col items-center text-center gap-6">
+            <CardContent className="flex flex-col items-center text-center gap-6">
               <div
                 className={`p-4 rounded-full ${feedback?.bgColor} mb-2 animate-bounce`}
               >
@@ -435,34 +435,6 @@ export default function ResultadosPage() {
                   value={resultado.porcentaje}
                   colorClass={feedback?.color || "text-primary"}
                 />
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-3 gap-4 w-full max-w-lg mt-4">
-                <div className="flex flex-col items-center p-3 rounded-lg bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/20">
-                  <span className="text-2xl font-bold text-green-600">
-                    {resultado.correctas}
-                  </span>
-                  <span className="text-xs font-medium text-green-700/70 dark:text-green-400">
-                    Correctas
-                  </span>
-                </div>
-                <div className="flex flex-col items-center p-3 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
-                  <span className="text-2xl font-bold text-red-600">
-                    {resultado.incorrectas}
-                  </span>
-                  <span className="text-xs font-medium text-red-700/70 dark:text-red-400">
-                    Incorrectas
-                  </span>
-                </div>
-                <div className="flex flex-col items-center p-3 rounded-lg bg-slate-50 dark:bg-slate-900/20 border border-slate-100 dark:border-slate-800">
-                  <span className="text-2xl font-bold text-foreground">
-                    {resultado.totalPreguntas}
-                  </span>
-                  <span className="text-xs font-medium text-muted-foreground">
-                    Total
-                  </span>
-                </div>
               </div>
             </CardContent>
           </Card>
