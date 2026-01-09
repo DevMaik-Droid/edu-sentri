@@ -324,23 +324,6 @@ export default function ResultadosPage() {
     );
   };
 
-  const getRetryLabel = (tipo: string) => {
-    switch (tipo) {
-      case "practica":
-        return "Nueva Práctica";
-      case "general":
-        return "Nuevo Simulacro";
-      case "area":
-        return "Nueva Prueba";
-      case "demo":
-        return "Intentar de nuevo";
-      case "ia":
-        return "Intentar de nuevo";
-      default:
-        return `Nueva ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
-    }
-  };
-
   const getRetryUrl = (config: { tipo: string; area?: string | null }) => {
     if (config.tipo === "practica") {
       // Para práctica, redirigir a la configuración de práctica
@@ -403,7 +386,7 @@ export default function ResultadosPage() {
         </div>
       )}
 
-      <div className="container min-h-screen px-4 max-w-4xl relative z-10">
+      <div className="flex flex-col h-screen items-center justify-center w-full">
         <div className="flex flex-col items-center justify-center mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
           {/* Main Score Card */}
           <Card
@@ -441,7 +424,13 @@ export default function ResultadosPage() {
         </div>
 
         {/* Actions */}
-        <div className={`grid gap-3 mb-8 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300 ${retryConfig.tipo === "demo" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-3"}`}>
+        <div
+          className={`grid gap-3 mb-8 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300 ${
+            retryConfig.tipo === "demo"
+              ? "grid-cols-1 sm:grid-cols-2"
+              : "grid-cols-1 sm:grid-cols-3"
+          }`}
+        >
           <Button
             onClick={handleReview}
             size="lg"
@@ -492,7 +481,7 @@ export default function ResultadosPage() {
                 handleNewTest();
               }}
               size="lg"
-              className="h-16 flex flex-col gap-1 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              className="h-16 flex flex-col gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             >
               <Sparkles className="w-5 h-5" />
               <span className="font-bold">Nuevas Preguntas</span>

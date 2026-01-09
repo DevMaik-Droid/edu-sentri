@@ -33,6 +33,7 @@ export default function RevisionPage() {
   const router = useRouter();
   const [testData, setTestData] = useState<TestData | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
     // Obtener datos desde sessionStorage
@@ -127,9 +128,12 @@ export default function RevisionPage() {
     return true;
   });
 
-  // Función para generar y descargar reporte usando la impresión del navegador
+  // Función para generar y descargar PDF usando print del navegador
   const generarReporte = () => {
-    const reporteHTML = `
+    setIsGeneratingPDF(true);
+
+    try {
+      const reporteHTML = `
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -378,6 +382,18 @@ export default function RevisionPage() {
     .no-print {
       text-align: center;
       margin-bottom: 20px;
+      padding: 20px;
+      background: #f0f9ff;
+      border: 2px solid #3b82f6;
+      border-radius: 10px;
+    }
+    .no-print h2 {
+      color: #1e40af;
+      margin-bottom: 10px;
+    }
+    .no-print p {
+      color: #1e3a8a;
+      margin-bottom: 15px;
     }
     .print-btn {
       background: #10b981;
@@ -407,6 +423,64 @@ export default function RevisionPage() {
       background: #4b5563;
     }
     
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      .header {
+        padding: 20px;
+        border-radius: 8px;
+      }
+      .header h1 { font-size: 24px; }
+      .header p { font-size: 14px; }
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .stat-card { padding: 15px; }
+      .stat-value { font-size: 24px; }
+      .stat-label { font-size: 10px; }
+      .question-card { margin-bottom: 15px; }
+      .question-header {
+        padding: 15px;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .question-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+      }
+      .badges { gap: 6px; }
+      .badge {
+        font-size: 10px;
+        padding: 3px 8px;
+      }
+      .question-title { font-size: 14px; }
+      .question-body { padding: 15px; }
+      .option {
+        padding: 10px 12px;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .option-key { min-width: auto; }
+      .option-text { font-size: 13px; }
+      .option.user-answer::before {
+        font-size: 8px;
+        padding: 2px 8px;
+      }
+      .explanation { padding: 12px; }
+      .explanation-title { font-size: 11px; }
+      .explanation-text { font-size: 12px; }
+      .print-btn, .close-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+        display: block;
+        width: 100%;
+        margin: 5px 0;
+      }
+      .footer { padding: 20px; }
+    }
+    
     @media print {
       body { padding: 0; }
       .no-print { display: none; }
@@ -419,19 +493,20 @@ export default function RevisionPage() {
 <body>
   <div class="container">
     <div class="no-print">
+      <h2>📄 Guardar como PDF</h2>
+      <img src="${window.location.origin}/logo.png" width="100" height="100" alt="logo" />
+      <p>Para guardar este reporte como PDF, haz clic en "Imprimir" y luego selecciona "Guardar como PDF" como destino.</p>
       <button class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
       <button class="close-btn" onclick="window.close()">❌ Cerrar</button>
     </div>
     
     <div class="header">
-      <img src="${window.location.origin}/logo.png" class="logo" alt="Logo" />
       <h1>📊 Reporte de Revisión de Examen</h1>
       <p>EduSentri - ${new Date().toLocaleDateString("es-ES", {
         year: "numeric",
         month: "long",
         day: "numeric",
       })}</p>
-      
     </div>
     
     <div class="stats">
@@ -454,11 +529,9 @@ export default function RevisionPage() {
     </div>
     
     <div class="content">
-    
       ${preguntasConRespuestas
         .map(
           (item, index) => `
-          
         <div class="question-card ${item.esCorrecta ? "correct" : "incorrect"}">
           <div class="question-header">
             <div class="question-icon">${item.esCorrecta ? "✓" : "✗"}</div>
@@ -531,14 +604,13 @@ export default function RevisionPage() {
     <div class="footer">
       <p><strong>EduSentri</strong> - Sistema de Evaluación y Aprendizaje</p>
       <p>Generado el ${new Date().toLocaleString("es-ES")}</p>
-      <img src="${window.location.origin}/logo.png" class="logo" alt="Logo" />
+      <img src="${window.location.origin}/logo.png" width="100" height="100" alt="logo" />
     </div>
   </div>
   
   <script>
     // Auto-trigger print dialog after page loads
     window.addEventListener('load', function() {
-      // Small delay to ensure everything is rendered
       setTimeout(function() {
         window.print();
       }, 500);
@@ -548,15 +620,23 @@ export default function RevisionPage() {
 </html>
     `;
 
-    // Abrir nueva ventana con el reporte
-    const printWindow = window.open("", "_blank");
-    if (printWindow) {
-      printWindow.document.write(reporteHTML);
-      printWindow.document.close();
-    } else {
+      // Abrir nueva ventana con el reporte
+      const printWindow = window.open("", "_blank");
+      if (printWindow) {
+        printWindow.document.write(reporteHTML);
+        printWindow.document.close();
+      } else {
+        alert(
+          "No se pudo abrir la ventana de impresión. Por favor, permite las ventanas emergentes."
+        );
+      }
+    } catch (error) {
+      console.error("Error al generar reporte:", error);
       alert(
-        "No se pudo abrir la ventana de impresión. Por favor, permite las ventanas emergentes."
+        "Hubo un error al generar el reporte. Por favor, intenta nuevamente."
       );
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -591,10 +671,20 @@ export default function RevisionPage() {
             <Button
               onClick={generarReporte}
               size="lg"
-              className="gap-2 bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all"
+              disabled={isGeneratingPDF}
+              className="gap-2 bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <FileText className="w-5 h-5" />
-              Generar Reporte
+              {isGeneratingPDF ? (
+                <>
+                  <div className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                  Generando PDF...
+                </>
+              ) : (
+                <>
+                  <FileText className="w-5 h-5" />
+                  Generar Reporte
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -801,7 +891,10 @@ export default function RevisionPage() {
                           )}
                         </div>
                         <CardTitle className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 leading-relaxed">
-                          <span className="text-xm text-blue-600 font-bold">{item.pregunta.num_pregunta}. </span>{item.pregunta.enunciado}
+                          <span className="text-xm text-blue-600 font-bold">
+                            {item.pregunta.num_pregunta}.{" "}
+                          </span>
+                          {item.pregunta.enunciado}
                         </CardTitle>
                       </div>
                     </div>
@@ -842,7 +935,6 @@ export default function RevisionPage() {
                           >
                             {isUserAnswer && (
                               <div className="absolute -top-2.5 left-3 px-3 py-0.5 bg-blue-600 text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
-                                <span>👤</span>
                                 <span>Tu Respuesta</span>
                               </div>
                             )}
