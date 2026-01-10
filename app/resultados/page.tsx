@@ -386,7 +386,7 @@ export default function ResultadosPage() {
         </div>
       )}
 
-      <div className="flex flex-col h-screen items-center justify-center w-full">
+      <div className="flex flex-col h-screen items-center justify-center w-full p-6">
         <div className="flex flex-col items-center justify-center mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
           {/* Main Score Card */}
           <Card
@@ -425,7 +425,7 @@ export default function ResultadosPage() {
 
         {/* Actions */}
         <div
-          className={`grid gap-3 mb-8 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300 ${
+          className={`grid gap-4 mb-8 w-full max-w-3xl px-4 ${
             retryConfig.tipo === "demo"
               ? "grid-cols-1 sm:grid-cols-2"
               : "grid-cols-1 sm:grid-cols-3"
@@ -433,30 +433,33 @@ export default function ResultadosPage() {
         >
           <Button
             onClick={handleReview}
-            size="lg"
-            className="w-full gap-2 shadow-lg hover:scale-105 transition-transform"
+            className="cursor-pointer w-full h-14 sm:h-12 text-base sm:text-sm font-medium shadow-md hover:scale-[1.02] transition-all bg-primary hover:bg-primary/90"
           >
-            <FileText className="w-4 h-4" />
+            <FileText className="mr-2 h-5 w-5" />
             Revisar
           </Button>
           {retryConfig.tipo !== "demo" && (
             <Button
-              onClick={() => setShowRestartDialog(true)}
+              onClick={() => {
+                if (retryConfig.tipo === "practica") {
+                  handleNewTest();
+                } else {
+                  setShowRestartDialog(true);
+                }
+              }}
               variant="outline"
-              size="lg"
-              className="w-full gap-2 hover:bg-muted"
+              className="cursor-pointer w-full h-14 sm:h-12 text-base sm:text-sm font-medium border-2 hover:bg-muted/50 hover:border-primary/50 transition-colors"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="mr-2 h-5 w-5" />
               Nueva Prueba
             </Button>
           )}
           <Button
             onClick={() => router.push("/dashboard")}
             variant="outline"
-            size="lg"
-            className="w-full gap-2 hover:bg-muted"
+            className="cursor-pointer w-full h-14 sm:h-12 text-base sm:text-sm font-medium border-2 hover:bg-muted/50 transition-colors"
           >
-            <Home className="w-4 h-4" />
+            <Home className="mr-2 h-5 w-5" />
             Inicio
           </Button>
         </div>
@@ -481,7 +484,7 @@ export default function ResultadosPage() {
                 handleNewTest();
               }}
               size="lg"
-              className="h-16 flex flex-col gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              className="h-16 flex flex-col gap-1 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 cursor-pointer"
             >
               <Sparkles className="w-5 h-5" />
               <span className="font-bold">Nuevas Preguntas</span>
@@ -496,7 +499,7 @@ export default function ResultadosPage() {
               }}
               size="lg"
               variant="outline"
-              className="h-16 flex flex-col gap-1 border-2"
+              className="h-16 flex flex-col gap-1 border-2 cursor-pointer"
             >
               <RotateCcw className="w-5 h-5" />
               <span className="font-bold">Mismas Preguntas</span>

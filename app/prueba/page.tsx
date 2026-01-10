@@ -778,18 +778,16 @@ export default function PruebaPage() {
               })}
             </div>
           </div>
-          <div className="flex items-center gap-4 text-xs text-muted-foreground border-t pt-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground border-t pt-3">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded bg-green-500"></div>
-              <span>Respondidas ({respuestas.length})</span>
+              <span>Resp. ({respuestas.length})</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded bg-orange-50 border-2 border-orange-400 relative">
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
               </div>
-              <span>
-                Sin responder ({preguntas.length - respuestas.length})
-              </span>
+              <span>Sin resp. ({preguntas.length - respuestas.length})</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded border-2 border-primary bg-primary"></div>
