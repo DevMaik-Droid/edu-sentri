@@ -17,6 +17,8 @@ export interface Profile {
   nombre: string;
   activo: boolean;
   rol: string;
+  tipo: string;
+  email: string;
   fecha_registro: string;
   ultimo_acceso: string | null;
 }

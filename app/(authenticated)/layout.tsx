@@ -22,7 +22,7 @@ export default async function DashboardLayout({
   // 2️⃣ Obtener perfil
   const { data: profile } = await supabase
     .from("profiles")
-    .select("nombre")
+    .select("nombre, tipo") // Select tipo
     .eq("id", user.id)
     .single();
 
@@ -34,7 +34,7 @@ export default async function DashboardLayout({
   return (
     <ChatVisibilityProvider>
       {children}
-      <ChatWidget />
+      {profile.tipo === "pro" && <ChatWidget />}
     </ChatVisibilityProvider>
   );
 }

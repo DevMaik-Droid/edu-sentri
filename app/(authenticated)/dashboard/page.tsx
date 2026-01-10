@@ -10,6 +10,7 @@ import { EstadisticasDashboard } from "@/components/estadisticas-dashboard";
 import type { IntentoHistorico } from "@/types/pregunta";
 import ClientLayout from "../ClientLayout";
 import { obtenerHistorialSupabase } from "@/services/intentos";
+import { useProfile } from "@/hooks/use-profile";
 
 const areas = [
   {
@@ -43,6 +44,7 @@ const navegar = (url: string) => {
 };
 
 export default function DashboardPage() {
+  const { profile } = useProfile();
   const [historial, setHistorial] = useState<IntentoHistorico[]>([]);
   const [cargando, setCargando] = useState(true);
 
@@ -84,7 +86,9 @@ export default function DashboardPage() {
           <Tabs defaultValue="pruebas" className="space-y-4 mb-8">
             <TabsList>
               <TabsTrigger value="pruebas">Pruebas</TabsTrigger>
-              <TabsTrigger value="practicas">Estudios</TabsTrigger>
+              {profile?.tipo === "pro" && (
+                <TabsTrigger value="practicas">Estudios</TabsTrigger>
+              )}
             </TabsList>
             <TabsContent value="pruebas">
               <EstadisticasDashboard
@@ -131,12 +135,14 @@ export default function DashboardPage() {
                 })}
               </div>
             </TabsContent>
-            <TabsContent value="practicas">
-              <EstadisticasDashboard
-                historial={historial.filter((h) => h.tipo === "practica")}
-                modo="practicas"
-              />
-            </TabsContent>
+            {profile?.tipo === "pro" && (
+              <TabsContent value="practicas">
+                <EstadisticasDashboard
+                  historial={historial.filter((h) => h.tipo === "practica")}
+                  modo="practicas"
+                />
+              </TabsContent>
+            )}
           </Tabs>
         )}
 

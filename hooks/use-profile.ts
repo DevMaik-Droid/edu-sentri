@@ -19,8 +19,8 @@ export function useProfile() {
   const cached = loadCachedUser();
 
   // 🔹 Estados inicializados desde cache (NO useEffect)
-  const [user, setUser] = useState<any>(cached?.user ?? null);
-  const [email, setEmail] = useState<string>(cached?.email ?? "");
+  const [user, setUser] = useState<any>(null); // Ya no se guarda usuario en cache por seguridad
+  const [email, setEmail] = useState<string>(cached?.profile?.email ?? "");
   const [profile, setProfile] = useState<Profile | null>(
     cached?.profile ?? null
   );
@@ -55,7 +55,8 @@ export function useProfile() {
 
       if (mounted) {
         setUser(currentUser);
-        setEmail(currentUser.email || "");
+        // El email se actualizará con el perfil, pero por si acaso falla el fetch del perfil:
+        if (!email) setEmail(currentUser.email || "");
       }
 
       // 2️⃣ Obtener perfil
@@ -67,16 +68,20 @@ export function useProfile() {
 
       if (!error && mounted) {
         setProfile(data);
+        setEmail(data.email || currentUser.email || "");
 
-        // 3️⃣ Guardar cache actualizado
+        // 3️⃣ Guardar cache actualizado (SOLO nombre, email)
         if (typeof window !== "undefined") {
+          const minimalCache = {
+            profile: {
+              nombre: data.nombre,
+              email: data.email || currentUser.email,
+            },
+          };
+
           localStorage.setItem(
             "edu_sentri_user_cache",
-            JSON.stringify({
-              user: currentUser,
-              email: currentUser.email || "",
-              profile: data,
-            })
+            JSON.stringify(minimalCache)
           );
         }
       }

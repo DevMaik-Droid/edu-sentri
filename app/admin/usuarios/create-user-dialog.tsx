@@ -11,6 +11,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +33,7 @@ export function CreateUserDialog({ onUserCreated }: CreateUserDialogProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nombre, setNombre] = useState("");
+  const [tipo, setTipo] = useState("lite");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +45,7 @@ export function CreateUserDialog({ onUserCreated }: CreateUserDialogProps) {
       const res = await fetch("/api/admin/crear-usuario", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, nombre }),
+        body: JSON.stringify({ email, password, nombre, tipo }),
       });
 
       const data = await res.json();
@@ -50,6 +58,7 @@ export function CreateUserDialog({ onUserCreated }: CreateUserDialogProps) {
       setNombre("");
       setEmail("");
       setPassword("");
+      setTipo("lite");
       setOpen(false);
       onUserCreated();
     } catch (err: unknown) {
@@ -115,6 +124,18 @@ export function CreateUserDialog({ onUserCreated }: CreateUserDialogProps) {
               />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
+            <div className="grid gap-2">
+              <Label htmlFor="tipo">Tipo de Cuenta</Label>
+              <Select value={tipo} onValueChange={setTipo}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="lite">Lite (Básico)</SelectItem>
+                  <SelectItem value="pro">Pro (Completo)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <AlertDialogFooter>
