@@ -27,6 +27,8 @@ import {
   Volume2,
   Pause,
   Square,
+  Plus,
+  Minus,
 } from "lucide-react";
 import {
   Select,
@@ -906,42 +908,122 @@ export default function PracticaAreaContent() {
             {/* Inputs de Rango - Ocultos para Conocimientos Generales */}
             {!isConocimientosGenerales ? (
               <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="inicio">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <Label htmlFor="inicio" className="text-base font-medium">
                       {isRazonamientoLogico
                         ? "Pregunta No. (Inicio)"
                         : "Desde pregunta (Índice)"}
                     </Label>
-                    <Input
-                      id="inicio"
-                      type="number"
-                      min="1"
-                      max={!isRazonamientoLogico ? totalDisponible : undefined}
-                      value={rangoInicio}
-                      onChange={(e) => setRangoInicio(Number(e.target.value))}
-                      className="text-lg font-medium"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 shrink-0 border-2"
+                        onClick={() =>
+                          setRangoInicio(Math.max(1, rangoInicio - 1))
+                        }
+                        disabled={rangoInicio <= 1}
+                      >
+                        <Minus className="h-5 w-5" />
+                      </Button>
+                      <div className="relative flex-1">
+                        <Input
+                          id="inicio"
+                          type="number"
+                          min="1"
+                          max={
+                            !isRazonamientoLogico ? totalDisponible : undefined
+                          }
+                          value={rangoInicio}
+                          onChange={(e) =>
+                            setRangoInicio(Number(e.target.value))
+                          }
+                          className="text-lg font-medium text-center h-12"
+                        />
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 shrink-0 border-2"
+                        onClick={() => {
+                          const max =
+                            !isRazonamientoLogico && totalDisponible > 0
+                              ? totalDisponible
+                              : 9999;
+                          setRangoInicio(Math.min(max, rangoInicio + 1));
+                        }}
+                        disabled={
+                          !isRazonamientoLogico &&
+                          totalDisponible > 0 &&
+                          rangoInicio >= totalDisponible
+                        }
+                      >
+                        <Plus className="h-5 w-5" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="fin">
+
+                  <div className="space-y-3">
+                    <Label htmlFor="fin" className="text-base font-medium">
                       {isRazonamientoLogico
                         ? "Pregunta No. (Fin)"
                         : "Hasta pregunta (Índice)"}
                     </Label>
-                    <Input
-                      id="fin"
-                      type="number"
-                      min={rangoInicio}
-                      max={
-                        !isRazonamientoLogico
-                          ? Math.min(rangoInicio + 199, totalDisponible || 200)
-                          : undefined
-                      }
-                      value={rangoFin}
-                      onChange={(e) => setRangoFin(Number(e.target.value))}
-                      className="text-lg font-medium"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 shrink-0 border-2"
+                        onClick={() =>
+                          setRangoFin(Math.max(rangoInicio, rangoFin - 1))
+                        }
+                        disabled={rangoFin <= rangoInicio}
+                      >
+                        <Minus className="h-5 w-5" />
+                      </Button>
+                      <div className="relative flex-1">
+                        <Input
+                          id="fin"
+                          type="number"
+                          min={rangoInicio}
+                          max={
+                            !isRazonamientoLogico
+                              ? Math.min(
+                                  rangoInicio + 199,
+                                  totalDisponible || 200
+                                )
+                              : undefined
+                          }
+                          value={rangoFin}
+                          onChange={(e) => setRangoFin(Number(e.target.value))}
+                          className="text-lg font-medium text-center h-12"
+                        />
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 shrink-0 border-2"
+                        onClick={() => {
+                          const max =
+                            !isRazonamientoLogico && totalDisponible > 0
+                              ? Math.min(
+                                  rangoInicio + 199,
+                                  totalDisponible || 200
+                                )
+                              : rangoInicio + 199;
+                          setRangoFin(Math.min(max, rangoFin + 1));
+                        }}
+                        disabled={
+                          !isRazonamientoLogico &&
+                          totalDisponible > 0 &&
+                          rangoFin >=
+                            Math.min(rangoInicio + 199, totalDisponible || 200)
+                        }
+                      >
+                        <Plus className="h-5 w-5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
