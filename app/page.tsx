@@ -86,6 +86,26 @@ export default async function HomePage() {
             </Button>
           </Link>
 
+          {/* PREMIUM */}
+          <Link href="https://intentos.sentri.lat">
+            <Button
+              variant="outline"
+              className="
+              text-gray-800
+              w-full gap-2
+              border-slate-600
+              hover:bg-slate-700/50
+              hover:text-white
+              transition-all
+              mb-4
+              cursor-pointer
+            "
+            >
+              Usar código
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </Link>
+
           {/* INSTALAR APP */}
           <InstallPrompt />
 
@@ -140,7 +160,7 @@ export default async function HomePage() {
           >
             Privacidad
           </Link>
-          <span>&copy; 2025 EduSentri</span>
+          <span>&copy; 2026 EduSentri</span>
         </div>
       </div>
     </div>
