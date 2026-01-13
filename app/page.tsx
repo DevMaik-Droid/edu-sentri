@@ -112,7 +112,7 @@ export default async function HomePage() {
           {/* WHATSAPP */}
           <div className="flex gap-2 justify-center w-full">
             <a
-              href="https://wa.me/59175980130?text=Hola,%20quiero%20mas%20información%20sobre%20edu-sentri"
+              href="https://wa.me/59169401617?text=Hola,%20quiero%20mas%20información%20sobre%20edu-sentri"
               target="_blank"
               rel="noopener noreferrer"
             >
