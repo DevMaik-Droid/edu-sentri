@@ -99,9 +99,8 @@ export default function DashboardPage() {
         <div
           className={`mb-6 sm:mb-8 rounded-2xl p-6 sm:p-8 transition-all duration-500 ${timeState.className}`}
         >
-          <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-balance">
-            {timeState.greeting}, {profile?.nombre.split(" ")[0]}{" "}
-            {profile?.nombre.split(" ")[1]}
+          <h1 className="text-2xl sm:text-4xl font-bold mb-2 text-balance">
+            {timeState.greeting}, {profile?.nombre.split(" ")[0]}
           </h1>
           <p
             className={`text-sm sm:text-base text-balance ${timeState.subtextClassName}`}
