@@ -58,14 +58,54 @@ export default function DashboardPage() {
     cargarHistorial();
   }, []);
 
+  const [timeState, setTimeState] = useState({
+    greeting: "Hola",
+    className: "bg-background",
+    subtextClassName: "text-muted-foreground",
+  });
+
+  useEffect(() => {
+    const cambiarEstilo = async () => {
+      const hora = new Date().getHours();
+      if (hora >= 5 && hora < 12) {
+        setTimeState({
+          greeting: "Buenos días",
+          className:
+            "bg-gradient-to-br from-blue-500 to-cyan-400 text-white shadow-lg shadow-blue-500/20",
+          subtextClassName: "text-blue-50",
+        });
+      } else if (hora >= 12 && hora < 19) {
+        setTimeState({
+          greeting: "Buenas tardes",
+          className:
+            "bg-gradient-to-br from-orange-400 to-pink-500 text-white shadow-lg shadow-orange-500/20",
+          subtextClassName: "text-orange-50",
+        });
+      } else {
+        setTimeState({
+          greeting: "Buenas noches",
+          className:
+            "bg-gradient-to-br from-indigo-900 to-slate-800 text-white shadow-lg shadow-indigo-500/20",
+          subtextClassName: "text-indigo-100",
+        });
+      }
+    };
+    cambiarEstilo();
+  }, []);
+
   return (
     <ClientLayout>
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl">
-        <div className="mb-6 sm:mb-8">
+        <div
+          className={`mb-6 sm:mb-8 rounded-2xl p-6 sm:p-8 transition-all duration-500 ${timeState.className}`}
+        >
           <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-balance">
-            Dashboard
+            {timeState.greeting}, {profile?.nombre.split(" ")[0]}{" "}
+            {profile?.nombre.split(" ")[1]}
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground text-pretty">
+          <p
+            className={`text-sm sm:text-base text-balance ${timeState.subtextClassName}`}
+          >
             Visualiza tu progreso y elige tu próxima prueba
           </p>
         </div>

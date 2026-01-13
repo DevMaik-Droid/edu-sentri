@@ -35,23 +35,25 @@ export function UsersTable({
         <TableHeader>
           <TableRow>
             <TableHead>Nombre</TableHead>
+            <TableHead>Email</TableHead>
             <TableHead>Rol</TableHead>
             <TableHead>Estado</TableHead>
             <TableHead>Registrado</TableHead>
-            <TableHead>Último Acceso</TableHead>
+            <TableHead>Tipo</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {profiles.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center py-4">
+              <TableCell colSpan={6} className="text-center py-4">
                 No hay usuarios registrados.
               </TableCell>
             </TableRow>
           ) : (
             profiles.map((profile) => (
               <TableRow key={profile.id}>
-                <TableCell className="font-medium">{profile.nombre}</TableCell>
+                <TableCell className="font-medium max-w-[150px]">{profile.nombre}</TableCell>
+                <TableCell className="max-w-[200px]">{profile.email}</TableCell>
                 <TableCell>
                   <Badge
                     variant={profile.rol === "admin" ? "default" : "secondary"}
@@ -72,8 +74,8 @@ export function UsersTable({
                     </span>
                   </div>
                 </TableCell>
-                <TableCell>{formatDate(profile.fecha_registro)}</TableCell>
-                <TableCell>{formatDate(profile.ultimo_acceso)}</TableCell>
+                <TableCell className="max-w-[150px]">{formatDate(profile.fecha_registro)}</TableCell>
+                <TableCell className="max-w-[150px]"><span className={`ml-2 px-2 py-1 rounded text-white font-bold ${profile.tipo === "pro" ? "bg-green-600" : "bg-yellow-600"}`}>{profile.tipo.toUpperCase()}</span></TableCell>
               </TableRow>
             ))
           )}

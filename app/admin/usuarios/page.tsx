@@ -58,6 +58,19 @@ export default function AdminUsuariosPage() {
     loadProfiles();
   }, []);
 
+
+  const calcularTotal = () => {
+    return profiles.map((p) => p.tipo === "pro" ? 50 : 25).reduce((a, b) => a + b, 0);
+  };
+
+  const calcularTotalPro = () => {
+    return profiles.filter((p) => p.tipo === "pro").length * 50;
+  };
+
+  const calcularTotalLite = () => {
+    return profiles.filter((p) => p.tipo === "lite").length * 25;
+  };
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchProfiles();
@@ -136,7 +149,7 @@ export default function AdminUsuariosPage() {
             <div className="text-2xl font-bold">{recentUsers}</div>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800">
+        <Card className="bg-linear-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">
               Ganancias Totales
@@ -145,10 +158,10 @@ export default function AdminUsuariosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-700 dark:text-green-300">
-              {totalUsers * 50} Bs
+              {calcularTotal()} Bs
             </div>
             <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-              {totalUsers} usuarios × 50 Bs
+              {calcularTotalPro()} Bs (Pro) + {calcularTotalLite()} Bs (Lite)
             </p>
           </CardContent>
         </Card>

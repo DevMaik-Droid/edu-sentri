@@ -78,6 +78,8 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+
+
   const confirmLogout = async () => {
     if (onLogout) {
       setIsLoading(true);
@@ -301,7 +303,7 @@ export function AppSidebar({ onLogout }: AppSidebarProps) {
                 </Avatar>
                 <div className="flex flex-col">
                   <span className="text-xs font-semibold">
-                    {profile?.nombre}
+                    {profile?.nombre.split(" ")[0]} {profile?.nombre.split(" ")[1] === undefined ? "" : " " + profile?.nombre.split(" ")[1]}
                   </span>
                   <span className="text-xs text-sidebar-foreground/70">
                     {email}
