@@ -71,17 +71,17 @@ export default async function HomePage() {
             <Button
               variant="outline"
               className="
-              text-gray-800
+              bg-purple-700 hover:bg-purple-600
+              text-white
               w-full gap-2
-              border-slate-600
-              hover:bg-slate-700/50
+              border-purple-700
               hover:text-white
               transition-all
               mb-4
               cursor-pointer
             "
             >
-              Prueba Demo
+              Prueba Demo<span className="text-sm font-bold"> (Gratis)</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
@@ -94,14 +94,12 @@ export default async function HomePage() {
               text-gray-800
               w-full gap-2
               border-slate-600
-              hover:bg-slate-700/50
-              hover:text-white
               transition-all
               mb-4
               cursor-pointer
             "
             >
-              Usar código
+              Codigo (Gratis)
               <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>

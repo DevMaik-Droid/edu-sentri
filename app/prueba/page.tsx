@@ -33,7 +33,14 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { Eye, BookOpen } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { TimeBackground } from "@/components/time-background";
+import {
+  getTimePeriod,
+  getTimerColors,
+  getProgressColors,
+  getBorderColors,
+  getPrimaryButtonColors,
+} from "@/lib/get-time-period";
 
 export default function PruebaPage() {
   const router = useRouter();
@@ -69,6 +76,13 @@ export default function PruebaPage() {
     null
   );
   const [showTimeSelector, setShowTimeSelector] = useState(false);
+
+  // Dynamic colors based on time of day
+  const timePeriod = getTimePeriod();
+  const timerColors = getTimerColors(timePeriod);
+  const progressColors = getProgressColors(timePeriod);
+  const borderColors = getBorderColors(timePeriod);
+  const primaryButtonColors = getPrimaryButtonColors(timePeriod);
 
   // Helper to save session state
   const persistSession = useCallback(
@@ -534,344 +548,356 @@ export default function PruebaPage() {
   const mostrarRespuesta = false;
 
   return (
-    <div className="bg-background min-h-screen flex flex-col">
-      <div className="container h-screen mx-auto px-4 py-4 sm:py-8 flex flex-col">
-        {/* 🔝 PROGRESO (FIJO ARRIBA) */}
-        <div className=" sm:mb-6 animate-in fade-in slide-in-from-top-1 duration-500 shrink-0">
-          <div className="flex flex-col gap-2">
-            <div
-              className={`text-center font-mono font-bold text-xl ${
-                timeLeft < 300 ? "text-red-500 animate-pulse" : "text-primary"
-              }`}
-            >
-              {formatTime(timeLeft)}
-            </div>
-            {/* PROGRESO */}
-            <div className="mb-4 sm:mb-6 shrink-0">
-              <Progress value={progreso} className="h-2" />
+    <TimeBackground>
+      <div className="min-h-screen flex flex-col">
+        <div className="container h-screen mx-auto px-4 py-4 sm:py-8 flex flex-col">
+          {/* 🔝 PROGRESO (FIJO ARRIBA) */}
+          <div
+            className={`sm:mb-6 animate-in fade-in slide-in-from-top-1 duration-500 shrink-0 backdrop-blur-xl bg-white/60 dark:bg-slate-900/60 rounded-lg p-4 shadow-lg border-2 ${borderColors}`}
+          >
+            <div className="flex flex-col">
+              <div
+                className={`text-center font-mono font-bold text-2xl ${
+                  timeLeft < 300 ? "text-red-500 animate-pulse" : timerColors
+                }`}
+              >
+                {formatTime(timeLeft)}
+              </div>
+              {/* PROGRESO */}
+              <div className="shrink-0">
+                <div className="h-3 w-full bg-white/60 dark:bg-slate-800 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
+                  <div
+                    className={`h-full rounded-full transition-all duration-1000 ease-out ${progressColors}`}
+                    style={{
+                      width: `${progreso}%`,
+                    }}
+                  />
+                </div>
 
-              <div className="flex justify-between mt-1 text-sm text-muted-foreground items-center">
-                <span>Pregunta {currentIndex + 1}</span>
-                {isComprensionLectora && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowTextoDialog(true)}
-                    className="h-6 text-purple-600
+                <div className="flex justify-between mt-1 text-sm text-muted-foreground items-center">
+                  <span>Pregunta {currentIndex + 1}</span>
+                  {isComprensionLectora && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowTextoDialog(true)}
+                      className="h-6 text-purple-600
                      border border-purple-600 hover:bg-purple-200/70 hover:text-purple-600
-                      hover:border-purple-600 transition-colors gap-1.5 text-xs font-medium"
-                  >
-                    <Eye className="w-3 h-3" />
-                    Ver Texto
-                  </Button>
-                )}
-                {/* Botón ver texto individual si la pregunta lo requiere (para otros casos) */}
-                {area !== "Comprensión Lectora" &&
-                  preguntas[preguntaActual]?.texto_lectura_id && (
-                    <div className="flex justify-center">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowTextoDialog(true)}
-                        className="h-6 sm:h-8 gap-2 text-purple-600 border-purple-600 hover:bg-purple-200/70 hover:text-purple-600
-                        hover:border-purple-600 transition-colors text-xs font-medium cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4" />
-                        Ver Texto
-                      </Button>
-                    </div>
+                      hover:border-purple-600 transition-colors gap-1.5 text-xs font-medium backdrop-blur-sm"
+                    >
+                      <Eye className="w-3 h-3" />
+                      Ver Texto
+                    </Button>
                   )}
+                  {/* Botón ver texto individual si la pregunta lo requiere (para otros casos) */}
+                  {area !== "Comprensión Lectora" &&
+                    preguntas[preguntaActual]?.texto_lectura_id && (
+                      <div className="flex justify-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowTextoDialog(true)}
+                          className="h-6 sm:h-8 gap-2 text-purple-600 border-purple-600 hover:bg-purple-200/70 hover:text-purple-600
+                        hover:border-purple-600 transition-colors text-xs font-medium cursor-pointer backdrop-blur-sm"
+                        >
+                          <Eye className="w-4 h-4" />
+                          Ver Texto
+                        </Button>
+                      </div>
+                    )}
 
-                <span>Total {preguntas.length}</span>
+                  <span>Total {preguntas.length}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* 🧠 CONTENEDOR DE LA PREGUNTA (SCROLL INTERNO) */}
-        <div
-          key={preguntaActual}
-          className="flex-1 animate-in fade-in slide-in-from-right-4 duration-300 min-h-0 relative overflow-y-auto"
-        >
-          <QuestionCard
-            pregunta={preguntas[preguntaActual]}
-            numeroActual={preguntaActual + 1}
-            total={preguntas.length}
-            respuestaSeleccionada={respuestaActual}
-            onSeleccionarRespuesta={handleSeleccionarRespuesta}
-            mostrarRespuesta={mostrarRespuesta}
-          />
-        </div>
-
-        {/* 🔽 BOTONES (SIEMPRE ABAJO) */}
-        <div className="mt-4 flex items-stretch gap-3 shrink-0">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={handleAnterior}
-            disabled={preguntaActual === 0}
-            className="gap-2 bg-card h-12 transition-all duration-200 hover:scale-102 flex-1"
+          {/* 🧠 CONTENEDOR DE LA PREGUNTA (SCROLL INTERNO) */}
+          <div
+            key={preguntaActual}
+            className="flex-1 animate-in fade-in slide-in-from-right-4 duration-300 min-h-0 relative overflow-y-auto"
           >
-            <ChevronLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Anterior</span>
-            <span className="sm:hidden">Atrás</span>
-          </Button>
+            <QuestionCard
+              pregunta={preguntas[preguntaActual]}
+              numeroActual={preguntaActual + 1}
+              total={preguntas.length}
+              respuestaSeleccionada={respuestaActual}
+              onSeleccionarRespuesta={handleSeleccionarRespuesta}
+              mostrarRespuesta={mostrarRespuesta}
+            />
+          </div>
 
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => setShowNavigatorDialog(true)}
-            className="gap-2 bg-card h-12 transition-all duration-200 hover:scale-102 border-primary/50 text-primary hover:bg-primary/10 cursor-pointer max-w-14"
-          >
-            <Grid3x3 className="w-4 h-4" />
-          </Button>
-
-          {preguntaActual === preguntas.length - 1 ? (
+          {/* 🔽 BOTONES (SIEMPRE ABAJO) */}
+          <div className="mt-4 flex items-stretch gap-3 shrink-0">
             <Button
+              variant="outline"
               size="lg"
-              onClick={handleFinalizar}
-              disabled={respuestas.length !== preguntas.length}
-              className="gap-2 h-12 transition-all duration-200 hover:scale-102 flex-1"
+              onClick={handleAnterior}
+              disabled={preguntaActual === 0}
+              className={`cursor-pointer gap-2 backdrop-blur-sm bg-white dark:bg-slate-800 h-12 transition-all duration-200 hover:scale-[1.01] flex-1 shadow-md border-2 ${borderColors}`}
             >
-              <CheckCircle className="w-4 h-4" />
-              <span className="hidden sm:inline">Finalizar Prueba</span>
-              <span className="sm:hidden">Finalizar</span>
+              <ChevronLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Anterior</span>
+              <span className="sm:hidden">Atrás</span>
             </Button>
-          ) : (
+
             <Button
+              variant="outline"
               size="lg"
-              onClick={handleSiguiente}
-              className="gap-2 h-12 transition-all duration-200 hover:scale-102 flex-1"
+              onClick={() => setShowNavigatorDialog(true)}
+              className={`gap-2 backdrop-blur-sm bg-white/70 dark:bg-slate-800/70 border-primary/50 h-12 transition-all duration-200 hover:scale-[1.01] text-primary hover:bg-primary/10 cursor-pointer max-w-14 shadow-md`}
             >
-              <span className="hidden sm:inline">Siguiente</span>
-              <span className="sm:hidden">Continuar</span>
-              <ChevronRight className="w-4 h-4" />
-              
+              <Grid3x3 className="w-4 h-4" />
             </Button>
-          )}
-        </div>
 
-        {/* ℹ️ ESTADO */}
-        <div className="mt-3 sm:mt-4 text-center shrink-0">
-          {respuestas.length === preguntas.length ? (
-            <p className="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 animate-in fade-in duration-500">
-              ✓ ¡Has respondido todas las preguntas! Puedes finalizar.
-            </p>
-          ) : (
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              {respuestas.length} de {preguntas.length} respondidas
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* AlertDialog para mostrar texto de lectura */}
-      <AlertDialog open={showTextoDialog} onOpenChange={setShowTextoDialog}>
-        <AlertDialogContent className="max-h-[90vh] min-w-[60vw] max-w-[90vw] overflow-hidden flex flex-col">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-primary" />
-              {textoActual?.titulo || "Texto de Lectura"}
-            </AlertDialogTitle>
-          </AlertDialogHeader>
-          <div className="flex-1 overflow-y-auto pr-2">
-            {textoActual && (
-              <div className="prose prose-base dark:prose-invert max-w-none">
-                <ReactMarkdown
-                  components={{
-                    h2: ({ ...props }) => (
-                      <h2
-                        className="text-2xl font-bold mt-6 mb-4 text-foreground"
-                        {...props}
-                      />
-                    ),
-                    h3: ({ ...props }) => (
-                      <h3
-                        className="text-xl font-semibold mt-5 mb-3 text-foreground"
-                        {...props}
-                      />
-                    ),
-                    p: ({ ...props }) => (
-                      <p
-                        className="mb-4 leading-7 text-foreground/90"
-                        {...props}
-                      />
-                    ),
-                    ul: ({ ...props }) => (
-                      <ul
-                        className="my-4 ml-6 list-disc space-y-2"
-                        {...props}
-                      />
-                    ),
-                    ol: ({ ...props }) => (
-                      <ol
-                        className="my-4 ml-6 list-decimal space-y-2"
-                        {...props}
-                      />
-                    ),
-                    li: ({ ...props }) => (
-                      <li className="leading-7" {...props} />
-                    ),
-                    strong: ({ ...props }) => (
-                      <strong
-                        className="font-semibold text-foreground"
-                        {...props}
-                      />
-                    ),
-                    em: ({ ...props }) => <em className="italic" {...props} />,
-                  }}
-                >
-                  {textoActual.contenido}
-                </ReactMarkdown>
-              </div>
+            {preguntaActual === preguntas.length - 1 ? (
+              <Button
+                size="lg"
+                onClick={handleFinalizar}
+                disabled={respuestas.length !== preguntas.length}
+                className={`cursor-pointer gap-2 h-12 transition-all duration-200 hover:scale-[1.02] flex-1 border-0 text-white ${primaryButtonColors}`}
+              >
+                <CheckCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Finalizar Prueba</span>
+                <span className="sm:hidden">Finalizar</span>
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                onClick={handleSiguiente}
+                className={`cursor-pointer gap-2 h-12 transition-all duration-200 hover:scale-[1.02] flex-1 border-0 text-white ${primaryButtonColors}`}
+              >
+                <span className="hidden sm:inline">Siguiente</span>
+                <span className="sm:hidden">Continuar</span>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
             )}
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cerrar</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
-      {/* AlertDialog para navegador de preguntas */}
-      <AlertDialog
-        open={showNavigatorDialog}
-        onOpenChange={setShowNavigatorDialog}
-      >
-        <AlertDialogContent className="max-w-[80vw] max-h-[80vh] overflow-hidden flex flex-col">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Grid3x3 className="w-5 h-5 text-primary" />
-              Navegador de Preguntas
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Haz clic en cualquier pregunta para navegar a ella. Las preguntas
-              respondidas están marcadas en verde, las no respondidas en gris
-              con advertencia.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex-1 overflow-y-auto pr-2 py-4">
-            <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 m-2">
-              {preguntas.map((pregunta, index) => {
-                const isAnswered = respuestas.some(
-                  (r) => r.preguntaId === pregunta.id
-                );
-                const isCurrent = index === preguntaActual;
+          {/* ℹ️ ESTADO */}
+          <div className="mt-3 sm:mt-4 text-center shrink-0">
+            {respuestas.length === preguntas.length ? (
+              <p className="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 animate-in fade-in duration-500">
+                ✓ ¡Has respondido todas las preguntas! Puedes finalizar.
+              </p>
+            ) : (
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                {respuestas.length} de {preguntas.length} respondidas
+              </p>
+            )}
+          </div>
+        </div>
 
-                return (
-                  <button
-                    key={pregunta.id}
-                    onClick={() => handleGoToQuestion(index)}
-                    className={`relative aspect-square rounded-lg border-2 flex items-center justify-center font-bold text-sm transition-all hover:scale-110 ${
-                      isCurrent
-                        ? "border-primary bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
-                        : isAnswered
-                        ? "border-green-500 bg-green-500 text-white hover:bg-green-600"
-                        : "border-orange-400 bg-orange-50 text-orange-700 hover:bg-orange-100"
-                    } cursor-pointer`}
+        {/* AlertDialog para mostrar texto de lectura */}
+        <AlertDialog open={showTextoDialog} onOpenChange={setShowTextoDialog}>
+          <AlertDialogContent className="max-h-[90vh] min-w-[60vw] max-w-[90vw] overflow-hidden flex flex-col">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-primary" />
+                {textoActual?.titulo || "Texto de Lectura"}
+              </AlertDialogTitle>
+            </AlertDialogHeader>
+            <div className="flex-1 overflow-y-auto pr-2">
+              {textoActual && (
+                <div className="prose prose-base dark:prose-invert max-w-none">
+                  <ReactMarkdown
+                    components={{
+                      h2: ({ ...props }) => (
+                        <h2
+                          className="text-2xl font-bold mt-6 mb-4 text-foreground"
+                          {...props}
+                        />
+                      ),
+                      h3: ({ ...props }) => (
+                        <h3
+                          className="text-xl font-semibold mt-5 mb-3 text-foreground"
+                          {...props}
+                        />
+                      ),
+                      p: ({ ...props }) => (
+                        <p
+                          className="mb-4 leading-7 text-foreground/90"
+                          {...props}
+                        />
+                      ),
+                      ul: ({ ...props }) => (
+                        <ul
+                          className="my-4 ml-6 list-disc space-y-2"
+                          {...props}
+                        />
+                      ),
+                      ol: ({ ...props }) => (
+                        <ol
+                          className="my-4 ml-6 list-decimal space-y-2"
+                          {...props}
+                        />
+                      ),
+                      li: ({ ...props }) => (
+                        <li className="leading-7" {...props} />
+                      ),
+                      strong: ({ ...props }) => (
+                        <strong
+                          className="font-semibold text-foreground"
+                          {...props}
+                        />
+                      ),
+                      em: ({ ...props }) => (
+                        <em className="italic" {...props} />
+                      ),
+                    }}
                   >
-                    {index + 1}
-                    {!isAnswered && !isCurrent && (
-                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white"></span>
-                    )}
-                  </button>
-                );
-              })}
+                    {textoActual.contenido}
+                  </ReactMarkdown>
+                </div>
+              )}
             </div>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground border-t pt-3">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded bg-green-500"></div>
-              <span>Resp. ({respuestas.length})</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded bg-orange-50 border-2 border-orange-400 relative">
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
-              </div>
-              <span>Sin resp. ({preguntas.length - respuestas.length})</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded border-2 border-primary bg-primary"></div>
-              <span>Actual</span>
-            </div>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cerrar</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cerrar</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-      <AlertDialog open={showTimeSelector}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Configuración de Tiempo</AlertDialogTitle>
-            <AlertDialogDescription>
-              Selecciona el tiempo límite para esta prueba por área.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
-            <Button
-              onClick={() => {
-                setTiempoSeleccionado(1800);
-                setShowTimeSelector(false);
-              }}
-              variant="outline"
-              className="h-20 flex flex-col gap-1 cursor-pointer"
-            >
-              <span className="text-xl font-bold">30</span>
-              <span className="text-xs">Minutos</span>
-            </Button>
-            <Button
-              onClick={() => {
-                setTiempoSeleccionado(2400);
-                setShowTimeSelector(false);
-              }}
-              variant="outline"
-              className="h-20 flex flex-col gap-1"
-            >
-              <span className="text-xl font-bold">40</span>
-              <span className="text-xs">Minutos</span>
-            </Button>
-            <Button
-              onClick={() => {
-                setTiempoSeleccionado(3600);
-                setShowTimeSelector(false);
-              }}
-              variant="outline"
-              className="h-20 flex flex-col gap-1"
-            >
-              <span className="text-xl font-bold">1</span>
-              <span className="text-xs">Hora</span>
-            </Button>
-            <Button
-              onClick={() => {
-                setTiempoSeleccionado(5400);
-                setShowTimeSelector(false);
-              }}
-              variant="outline"
-              className="h-20 flex flex-col gap-1"
-            >
-              <span className="text-xl font-bold">1:30</span>
-              <span className="text-xs">Horas</span>
-            </Button>
-            <Button
-              onClick={() => {
-                setTiempoSeleccionado(7200);
-                setShowTimeSelector(false);
-              }}
-              variant="outline"
-              className="h-20 flex flex-col gap-1"
-            >
-              <span className="text-xl font-bold">2</span>
-              <span className="text-xs">Horas</span>
-            </Button>
-          </div>
-          <AlertDialogFooter>
-            <Button variant="ghost" onClick={() => router.push("/")}>
-              Cancelar
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+        {/* AlertDialog para navegador de preguntas */}
+        <AlertDialog
+          open={showNavigatorDialog}
+          onOpenChange={setShowNavigatorDialog}
+        >
+          <AlertDialogContent className="max-w-[80vw] max-h-[80vh] overflow-hidden flex flex-col">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Grid3x3 className="w-5 h-5 text-primary" />
+                Navegador de Preguntas
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Haz clic en cualquier pregunta para navegar a ella. Las
+                preguntas respondidas están marcadas en verde, las no
+                respondidas en gris con advertencia.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex-1 overflow-y-auto pr-2 py-4">
+              <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 m-2">
+                {preguntas.map((pregunta, index) => {
+                  const isAnswered = respuestas.some(
+                    (r) => r.preguntaId === pregunta.id
+                  );
+                  const isCurrent = index === preguntaActual;
+
+                  return (
+                    <button
+                      key={pregunta.id}
+                      onClick={() => handleGoToQuestion(index)}
+                      className={`relative aspect-square rounded-lg border-2 flex items-center justify-center font-bold text-sm transition-all hover:scale-110 ${
+                        isCurrent
+                          ? "border-primary bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
+                          : isAnswered
+                          ? "border-green-500 bg-green-500 text-white hover:bg-green-600"
+                          : "border-orange-400 bg-orange-50 text-orange-700 hover:bg-orange-100"
+                      } cursor-pointer`}
+                    >
+                      {index + 1}
+                      {!isAnswered && !isCurrent && (
+                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white"></span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground border-t pt-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded bg-green-500"></div>
+                <span>Resp. ({respuestas.length})</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded bg-orange-50 border-2 border-orange-400 relative">
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
+                </div>
+                <span>Sin resp. ({preguntas.length - respuestas.length})</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded border-2 border-primary bg-primary"></div>
+                <span>Actual</span>
+              </div>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cerrar</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={showTimeSelector}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Configuración de Tiempo</AlertDialogTitle>
+              <AlertDialogDescription>
+                Selecciona el tiempo límite para esta prueba por área.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="grid grid-cols-2 gap-4 py-4">
+              <Button
+                onClick={() => {
+                  setTiempoSeleccionado(1800);
+                  setShowTimeSelector(false);
+                }}
+                variant="outline"
+                className="h-20 flex flex-col gap-1 cursor-pointer"
+              >
+                <span className="text-xl font-bold">30</span>
+                <span className="text-xs">Minutos</span>
+              </Button>
+              <Button
+                onClick={() => {
+                  setTiempoSeleccionado(2400);
+                  setShowTimeSelector(false);
+                }}
+                variant="outline"
+                className="h-20 flex flex-col gap-1"
+              >
+                <span className="text-xl font-bold">40</span>
+                <span className="text-xs">Minutos</span>
+              </Button>
+              <Button
+                onClick={() => {
+                  setTiempoSeleccionado(3600);
+                  setShowTimeSelector(false);
+                }}
+                variant="outline"
+                className="h-20 flex flex-col gap-1"
+              >
+                <span className="text-xl font-bold">1</span>
+                <span className="text-xs">Hora</span>
+              </Button>
+              <Button
+                onClick={() => {
+                  setTiempoSeleccionado(5400);
+                  setShowTimeSelector(false);
+                }}
+                variant="outline"
+                className="h-20 flex flex-col gap-1"
+              >
+                <span className="text-xl font-bold">1:30</span>
+                <span className="text-xs">Horas</span>
+              </Button>
+              <Button
+                onClick={() => {
+                  setTiempoSeleccionado(7200);
+                  setShowTimeSelector(false);
+                }}
+                variant="outline"
+                className="h-20 flex flex-col gap-1"
+              >
+                <span className="text-xl font-bold">2</span>
+                <span className="text-xs">Horas</span>
+              </Button>
+            </div>
+            <AlertDialogFooter>
+              <Button variant="ghost" onClick={() => router.push("/")}>
+                Cancelar
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </TimeBackground>
   );
 }

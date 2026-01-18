@@ -5,7 +5,7 @@ import type { PreguntaUI } from "@/types/pregunta";
 import { getImagenPregunta } from "@/services/preguntas";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { RadioGroup } from "@/components/ui/radio-group";
 import {
   CheckCircle2,
   XCircle,
@@ -110,9 +110,9 @@ export function QuestionCard({
 
   return (
     <Card
-      className={`flex gap-2 flex-col h-full border-2 p-0 pb-2 transition-all duration-300 ${
+      className={`flex gap-2 flex-col h-full border-2 p-0 pb-2 transition-all duration-300 backdrop-blur-xl bg-white/70 dark:bg-slate-900/70 shadow-xl border-white/20 ${
         mostrar && esCorrecta
-          ? "border-green-500 bg-green-50/50 dark:bg-green-950/20"
+          ? "border-green-500 bg-green-50/80 dark:bg-green-950/40"
           : ""
       }`}
     >
@@ -122,9 +122,12 @@ export function QuestionCard({
           <div
             className={`flex items-center justify-center ${
               coloresPorArea[pregunta.componentes?.nombre || "Default"]
-            } rounded-t-lg h-10 text-black font-bold`}
+            } rounded-t-lg h-10 text-white font-bold relative overflow-hidden`}
           >
-            {pregunta.componentes?.nombre?.toUpperCase()}
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent" />
+            <span className="relative z-10">
+              {pregunta.componentes?.nombre?.toUpperCase()}
+            </span>
           </div>
 
           {numeroActual && total && (
@@ -137,7 +140,7 @@ export function QuestionCard({
                   coloresPorDisciplina[
                     pregunta.disciplinas?.nombre || "Default"
                   ]
-                } rounded-full w-fit`}
+                } rounded-full w-fit backdrop-blur-sm font-medium shadow-sm border border-white/20`}
               >
                 {pregunta.disciplinas?.nombre}
               </span>
@@ -164,19 +167,27 @@ export function QuestionCard({
                 return (
                   <div
                     key={index}
-                    className={`flex items-center space-x-3 p-3 sm:p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 ${
+                    onClick={() => handleChange(opcion.clave)}
+                    className={`group relative flex items-center p-4 sm:p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 backdrop-blur-sm ${
                       esSeleccionada
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50 hover:bg-secondary/50"
+                        ? "border-primary bg-primary/20 shadow-lg shadow-primary/10 scale-[1.01]"
+                        : "border-slate-300 dark:border-slate-700/50 bg-white/40 dark:bg-slate-800/40 hover:border-primary/50 hover:bg-primary/10 hover:shadow-md hover:scale-[1.005] "
                     }`}
                   >
-                    <RadioGroupItem
-                      value={opcion.clave}
-                      id={`opcion-${index}`}
-                      className="shrink-0"
-                    />
+                    {/* Indicador visual en lugar de radio button */}
+                    <div
+                      className={`shrink-0 w-6 h-6 mr-4 rounded-lg border-2 transition-all ${
+                        esSeleccionada
+                          ? "border-primary bg-primary"
+                          : "border-slate-300 dark:border-slate-600 group-hover:border-primary/50"
+                      } flex items-center justify-center`}
+                    >
+                      {esSeleccionada && (
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                      )}
+                    </div>
+
                     <Label
-                      htmlFor={`opcion-${index}`}
                       className={`flex-1 cursor-pointer text-sm sm:text-base leading-relaxed ${
                         esSeleccionada ? "font-semibold text-primary" : ""
                       }`}
@@ -196,23 +207,34 @@ export function QuestionCard({
               return (
                 <div
                   key={index}
-                  className={`flex items-center space-x-3 p-3 sm:p-4 rounded-lg border-2 cursor-pointer transition-all duration-300 ${
+                  className={`relative flex  items-center p-4 sm:p-5 rounded-xl border-2 cursor-not-allowed transition-all duration-300 backdrop-blur-sm ${
                     seleccion_correcta
-                      ? "border-green-500 bg-green-50 dark:bg-green-950/20"
+                      ? "border-green-500 bg-green-50/80 dark:bg-green-950/40 shadow-lg shadow-green-500/20"
                       : seleccion_incorrecta
-                      ? "border-red-500 bg-red-50 dark:bg-red-950/20"
-                      : "border-border hover:border-primary/50 hover:bg-secondary/50"
+                      ? "border-red-500 bg-red-50/80 dark:bg-red-950/40 shadow-lg shadow-red-500/20"
+                      : "border-slate-300 dark:border-slate-700/50 bg-white/40 dark:bg-slate-800/40"
                   }`}
                 >
-                  <RadioGroupItem
-                    value={opcion.clave}
-                    id={`opcion-${index}`}
-                    disabled={mostrar}
-                    className="shrink-0"
-                  />
+                  {/* Indicador de estado */}
+                  <div
+                    className={`shrink-0 w-6 h-6 mr-4 rounded-lg flex items-center justify-center ${
+                      seleccion_correcta
+                        ? "bg-green-500"
+                        : seleccion_incorrecta
+                        ? "bg-red-500"
+                        : "bg-slate-200 dark:bg-slate-700"
+                    }`}
+                  >
+                    {seleccion_correcta && (
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                    )}
+                    {seleccion_incorrecta && (
+                      <XCircle className="w-4 h-4 text-white" />
+                    )}
+                  </div>
+
                   <Label
-                    htmlFor={`opcion-${index}`}
-                    className={`flex-1 cursor-pointer text-sm sm:text-base leading-relaxed ${
+                    className={`flex-1 text-sm sm:text-base leading-relaxed ${
                       seleccion_correcta
                         ? "font-semibold text-green-700 dark:text-green-400"
                         : seleccion_incorrecta
@@ -222,11 +244,17 @@ export function QuestionCard({
                   >
                     {opcion.texto}
                   </Label>
-                  {seleccion_correcta && (
-                    <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
-                  )}
-                  {seleccion_incorrecta && (
-                    <XCircle className="w-5 h-5 text-red-600 shrink-0" />
+
+                  {/* Ícono de resultado en el extremo derecho */}
+                  {(seleccion_correcta || seleccion_incorrecta) && (
+                    <div className="shrink-0 ml-3">
+                      {seleccion_correcta && (
+                        <CheckCircle2 className="w-6 h-6 text-green-600" />
+                      )}
+                      {seleccion_incorrecta && (
+                        <XCircle className="w-6 h-6 text-red-600" />
+                      )}
+                    </div>
                   )}
                 </div>
               );
@@ -234,7 +262,7 @@ export function QuestionCard({
           </RadioGroup>
 
           {mostrar && !esCorrecta && (
-            <div className="mt-4 p-4 bg-green-50 dark:bg-green-950/20 border-l-4 border-green-500 rounded animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="mt-4 p-4 bg-green-50/80 dark:bg-green-950/40 backdrop-blur-sm border-l-4 border-green-500 rounded animate-in fade-in slide-in-from-top-2 duration-300 shadow-lg">
               <p className="text-sm font-medium text-green-800 dark:text-green-400">
                 Respuesta correcta:{" "}
                 <span className="font-bold">
@@ -247,7 +275,7 @@ export function QuestionCard({
           {mostrar && (
             <div className="mt-4 space-y-4">
               {pregunta.sustento && (
-                <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500 rounded animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="p-4 bg-blue-50/80 dark:bg-blue-950/40 backdrop-blur-sm border-l-4 border-blue-500 rounded animate-in fade-in slide-in-from-top-2 duration-300 shadow-lg">
                   <p className="text-sm font-medium text-blue-800 dark:text-blue-400 mb-1">
                     Explicación:
                   </p>

@@ -11,7 +11,6 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { QuestionCard } from "@/components/question-card";
@@ -58,6 +57,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import ClientLayout from "../../ClientLayout";
 import { useChatVisibility } from "@/context/chat-visibility-context";
+import { TimeBackground } from "@/components/time-background";
+import {
+  getTimePeriod,
+  getTimerColors,
+  getProgressColors,
+  getBorderColors,
+  getPrimaryButtonColors,
+} from "@/lib/get-time-period";
 
 const AREAS_CON_DISCIPLINAS: Record<string, string[]> = {
   "Razonamiento Lógico": [
@@ -112,6 +119,12 @@ export default function PracticaAreaContent() {
   const [textoActual, setTextoActual] =
     useState<TextoLecturaConPreguntas | null>(null);
   const [showTextoDialog, setShowTextoDialog] = useState(false);
+
+  // Dynamic colors based on time of day
+  const timePeriod = getTimePeriod();
+  const progressColors = getProgressColors(timePeriod);
+  const borderColors = getBorderColors(timePeriod);
+  const primaryButtonColors = getPrimaryButtonColors(timePeriod);
 
   // Estados de la práctica
   const [preguntas, setPreguntas] = useState<PreguntaUI[]>([]);
@@ -616,220 +629,231 @@ export default function PracticaAreaContent() {
     // Vista de selección de textos para Comprensión Lectora
     if (isComprensionLectora && fase === "seleccion-textos") {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-background px-4">
-          <Card className="w-full max-w-3xl animate-in fade-in zoom-in duration-300">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-primary" />
-                Seleccionar Textos de Lectura
-              </CardTitle>
-              <CardDescription>
-                Selecciona un texto para practicar comprensión lectora
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto">
-              {textosDisponibles.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  No hay textos disponibles en este momento.
-                </p>
-              ) : (
-                textosDisponibles.map((texto) => (
-                  <div
-                    key={texto.id}
-                    className={`flex items-start gap-3 p-4 rounded-lg border-2 transition-all cursor-pointer hover:bg-accent ${
-                      textosSeleccionados.includes(texto.id)
-                        ? "border-primary bg-primary/5"
-                        : "border-border"
-                    }`}
-                    onClick={() => toggleTextoSeleccionado(texto.id)}
-                  >
-                    <div className="w-5 h-5 mt-1 shrink-0">
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 transition-all ${
-                          textosSeleccionados.includes(texto.id)
-                            ? "border-primary bg-primary"
-                            : "border-border"
-                        }`}
-                      >
-                        {textosSeleccionados.includes(texto.id) && (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full bg-white" />
-                          </div>
-                        )}
+        <TimeBackground>
+          <div className="min-h-screen flex items-center justify-center px-4">
+            <Card
+              className={`w-full max-w-3xl animate-in fade-in zoom-in duration-300 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 shadow-2xl border-2 ${borderColors}`}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="w-6 h-6 text-primary" />
+                  Seleccionar Textos de Lectura
+                </CardTitle>
+                <CardDescription>
+                  Selecciona un texto para practicar comprensión lectora
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto">
+                {textosDisponibles.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">
+                    No hay textos disponibles en este momento.
+                  </p>
+                ) : (
+                  textosDisponibles.map((texto) => (
+                    <div
+                      key={texto.id}
+                      className={`flex items-start gap-3 p-4 rounded-lg border-2 transition-all cursor-pointer backdrop-blur-sm ${
+                        textosSeleccionados.includes(texto.id)
+                          ? "border-primary bg-primary/10 shadow-lg scale-[1.02]"
+                          : "border-white/30 dark:border-slate-700/50 bg-white/40 dark:bg-slate-800/40 hover:bg-accent hover:border-primary/50"
+                      }`}
+                      onClick={() => toggleTextoSeleccionado(texto.id)}
+                    >
+                      <div className="w-5 h-5 mt-1 shrink-0">
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 transition-all ${
+                            textosSeleccionados.includes(texto.id)
+                              ? "border-primary bg-primary"
+                              : "border-border"
+                          }`}
+                        >
+                          {textosSeleccionados.includes(texto.id) && (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <div className="w-2 h-2 rounded-full bg-white" />
+                            </div>
+                          )}
+                        </div>
                       </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-1">{texto.titulo}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {texto.num_preguntas} pregunta
+                          {texto.num_preguntas !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                      <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold mb-1">{texto.titulo}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {texto.num_preguntas} pregunta
-                        {texto.num_preguntas !== 1 ? "s" : ""}
-                      </p>
-                    </div>
-                    <FileText className="w-5 h-5 text-muted-foreground shrink-0" />
-                  </div>
-                ))
-              )}
-            </CardContent>
-            <CardFooter>
-              <Button
-                className="w-full h-12 text-lg gap-2"
-                onClick={handleIniciarLectura}
-                disabled={textosSeleccionados.length === 0}
-              >
-                <Play className="w-5 h-5 fill-current" />
-                Comenzar Práctica
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
+                  ))
+                )}
+              </CardContent>
+              <CardFooter>
+                <Button
+                  className={`cursor-pointer w-full h-12 text-lg gap-2 border-0 text-white ${primaryButtonColors}`}
+                  onClick={handleIniciarLectura}
+                  disabled={textosSeleccionados.length === 0}
+                >
+                  <Play className="w-5 h-5 fill-current" />
+                  Comenzar Práctica
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </TimeBackground>
       );
     }
 
     // Vista de lectura para Comprensión Lectora
     if (isComprensionLectora && fase === "lectura" && textoActual) {
       return (
-        <div className="bg-background min-h-screen">
-          <div className="container mx-auto px-4 py-8 max-w-4xl">
-            {textosSeleccionados.length > 1 && (
-              <div className="mb-6">
-                <Progress
-                  value={
-                    ((indiceTextoActual + 1) / textosSeleccionados.length) * 100
-                  }
-                  className="h-2"
-                />
-                <div className="flex justify-between mt-1 text-sm text-muted-foreground">
-                  <span>
-                    Texto {indiceTextoActual + 1} de{" "}
-                    {textosSeleccionados.length}
-                  </span>
+        <TimeBackground>
+          <div className="min-h-screen">
+            <div className="container mx-auto px-4 py-8 max-w-4xl">
+              {textosSeleccionados.length > 1 && (
+                <div className="mb-6">
+                  <div className="h-2.5 w-full bg-white/60 dark:bg-slate-800 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
+                    <div
+                      className={`h-full rounded-full transition-all duration-1000 ease-out ${progressColors}`}
+                      style={{
+                        width: `${
+                          ((indiceTextoActual + 1) /
+                            textosSeleccionados.length) *
+                          100
+                        }%`,
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-1 text-sm text-muted-foreground">
+                    <span>
+                      Texto {indiceTextoActual + 1} de{" "}
+                      {textosSeleccionados.length}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* CARD PRINCIPAL */}
-            <Card className="flex flex-col h-[89vh] animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <CardHeader className="shrink-0">
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="w-6 h-6 text-primary" />
-                  {textoActual.titulo}
-                </CardTitle>
-              </CardHeader>
+              {/* CARD PRINCIPAL */}
+              <Card className="flex flex-col h-[89vh] animate-in fade-in slide-in-from-bottom-4 duration-300 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-white/20 shadow-2xl">
+                <CardHeader className="shrink-0">
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="w-6 h-6 text-primary" />
+                    {textoActual.titulo}
+                  </CardTitle>
+                </CardHeader>
 
-              {/* CONTENIDO CON SCROLL */}
-              <CardContent className="flex-1 overflow-y-auto">
-                <div className="prose prose-base dark:prose-invert max-w-none">
-                  <ReactMarkdown
-                    components={{
-                      h2: (props) => (
-                        <h2
-                          className="text-2xl font-bold mt-6 mb-4"
-                          {...props}
-                        />
-                      ),
-                      h3: (props) => (
-                        <h3
-                          className="text-xl font-semibold mt-5 mb-3"
-                          {...props}
-                        />
-                      ),
-                      p: (props) => (
-                        <p
-                          className="mb-4 leading-7 text-foreground/90"
-                          {...props}
-                        />
-                      ),
-                      ul: (props) => (
-                        <ul
-                          className="my-4 ml-6 list-disc space-y-2"
-                          {...props}
-                        />
-                      ),
-                      ol: (props) => (
-                        <ol
-                          className="my-4 ml-6 list-decimal space-y-2"
-                          {...props}
-                        />
-                      ),
-                      li: (props) => <li className="leading-7" {...props} />,
-                      strong: (props) => (
-                        <strong
-                          className="font-semibold text-foreground"
-                          {...props}
-                        />
-                      ),
-                      em: (props) => <em className="italic" {...props} />,
-                    }}
-                  >
-                    {textoActual.contenido}
-                  </ReactMarkdown>
-                </div>
-              </CardContent>
-
-              {/* FOOTER FIJO */}
-              <CardFooter className="shrink-0 border-t flex justify-center gap-1 py-1 h-10">
-                {!isSpeaking && !isPaused ? (
-                  <Button variant="outline" onClick={handleSpeak}>
-                    <Volume2 className="w-4 h-4 mr-2" />
-                    Escuchar
-                  </Button>
-                ) : (
-                  <>
-                    {isSpeaking ? (
-                      <Button variant="outline" onClick={handlePause}>
-                        <Pause className="w-4 h-4 mr-2" />
-                        Pausar
-                      </Button>
-                    ) : (
-                      <Button variant="outline" onClick={handleSpeak}>
-                        <Play className="w-4 h-4 mr-2" />
-                        Continuar
-                      </Button>
-                    )}
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      onClick={handleStop}
+                {/* CONTENIDO CON SCROLL */}
+                <CardContent className="flex-1 overflow-y-auto">
+                  <div className="prose prose-base dark:prose-invert max-w-none">
+                    <ReactMarkdown
+                      components={{
+                        h2: (props) => (
+                          <h2
+                            className="text-2xl font-bold mt-6 mb-4"
+                            {...props}
+                          />
+                        ),
+                        h3: (props) => (
+                          <h3
+                            className="text-xl font-semibold mt-5 mb-3"
+                            {...props}
+                          />
+                        ),
+                        p: (props) => (
+                          <p
+                            className="mb-4 leading-7 text-foreground/90"
+                            {...props}
+                          />
+                        ),
+                        ul: (props) => (
+                          <ul
+                            className="my-4 ml-6 list-disc space-y-2"
+                            {...props}
+                          />
+                        ),
+                        ol: (props) => (
+                          <ol
+                            className="my-4 ml-6 list-decimal space-y-2"
+                            {...props}
+                          />
+                        ),
+                        li: (props) => <li className="leading-7" {...props} />,
+                        strong: (props) => (
+                          <strong
+                            className="font-semibold text-foreground"
+                            {...props}
+                          />
+                        ),
+                        em: (props) => <em className="italic" {...props} />,
+                      }}
                     >
-                      <Square className="w-4 h-4" />
+                      {textoActual.contenido}
+                    </ReactMarkdown>
+                  </div>
+                </CardContent>
+
+                {/* FOOTER FIJO */}
+                <CardFooter className="shrink-0 border-t flex justify-center gap-1 py-1 h-10 backdrop-blur-sm bg-white/50 dark:bg-slate-800/50">
+                  {!isSpeaking && !isPaused ? (
+                    <Button variant="outline" onClick={handleSpeak}>
+                      <Volume2 className="w-4 h-4 mr-2" />
+                      Escuchar
                     </Button>
-                  </>
-                )}
-              </CardFooter>
-            </Card>
+                  ) : (
+                    <>
+                      {isSpeaking ? (
+                        <Button variant="outline" onClick={handlePause}>
+                          <Pause className="w-4 h-4 mr-2" />
+                          Pausar
+                        </Button>
+                      ) : (
+                        <Button variant="outline" onClick={handleSpeak}>
+                          <Play className="w-4 h-4 mr-2" />
+                          Continuar
+                        </Button>
+                      )}
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={handleStop}
+                      >
+                        <Square className="w-4 h-4" />
+                      </Button>
+                    </>
+                  )}
+                </CardFooter>
+              </Card>
 
-            {/* BOTONES INFERIORES SIEMPRE VISIBLES */}
-            <div className="flex justify-center gap-2 mt-4">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setFase("seleccion-textos");
-                  handleStop();
-                }}
-              >
-                Volver a Selección
-              </Button>
+              {/* BOTONES INFERIORES SIEMPRE VISIBLES */}
+              <div className="flex justify-center gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setFase("seleccion-textos")}
+                  className={`cursor-pointer gap-2 backdrop-blur-sm bg-white dark:bg-slate-800 h-10 transition-all duration-200 hover:scale-[1.01] shadow-md border-2 ${borderColors}`}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Volver a Selección
+                </Button>
 
-              <Button
-                onClick={() => {
-                  handleComenzarPreguntas();
-                  handleStop();
-                }}
-                disabled={cargando}
-                className="gap-2"
-              >
-                {cargando ? (
-                  "Cargando..."
-                ) : (
-                  <>
-                    Comenzar Preguntas
-                    <ChevronRight className="w-4 h-4" />
-                  </>
-                )}
-              </Button>
+                <Button
+                  onClick={() => {
+                    handleComenzarPreguntas();
+                    handleStop();
+                  }}
+                  disabled={cargando}
+                  className={`cursor-pointer gap-2 border-0 text-white transition-all duration-200 hover:scale-[1.02] shadow-md ${primaryButtonColors}`}
+                >
+                  {cargando ? (
+                    "Cargando..."
+                  ) : (
+                    <>
+                      Comenzar Preguntas
+                      <ChevronRight className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        </TimeBackground>
       );
     }
 
@@ -1100,7 +1124,12 @@ export default function PracticaAreaContent() {
         <div className="container mx-auto px-4 py-2 sm:py-8 h-full flex flex-col">
           {/* PROGRESO */}
           <div className="mb-4 sm:mb-6 shrink-0">
-            <Progress value={progreso} className="h-2" />
+            <div className="h-3 w-full bg-white/60 dark:bg-slate-800 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
+              <div
+                className={`h-full rounded-full transition-all duration-1000 ease-out ${progressColors}`}
+                style={{ width: `${progreso}%` }}
+              />
+            </div>
 
             <div className="flex justify-between mt-1 text-sm text-muted-foreground items-center">
               <span>Pregunta {currentIndex + 1}</span>
@@ -1141,16 +1170,17 @@ export default function PracticaAreaContent() {
               variant="outline"
               onClick={handleAnterior}
               disabled={currentIndex === 0}
-              className="h-12 transition-all duration-200 hover:scale-102 gap-3 hover:bg-primary"
+              className={`cursor-pointer gap-2 backdrop-blur-sm bg-white dark:bg-slate-800 h-12 transition-all duration-200 hover:scale-[1.01] flex-1 shadow-md border-2 ${borderColors}`}
             >
               <ChevronLeft className="w-4 h-4" />
-              Atrás
+              <span className="hidden sm:inline">Anterior</span>
+              <span className="sm:hidden">Atrás</span>
             </Button>
 
             <Button
               onClick={handleSiguiente}
               disabled={!respuestas[currentIndex]}
-              className="col-span-2 transition-all duration-200 hover:scale-102 gap-3 h-12 hover:bg-primary"
+              className={`col-span-2 cursor-pointer gap-2 h-12 transition-all duration-200 hover:scale-[1.02] border-0 text-white ${primaryButtonColors}`}
             >
               {currentIndex === preguntas.length - 1 ? (
                 <>
@@ -1162,7 +1192,8 @@ export default function PracticaAreaContent() {
                 </>
               ) : (
                 <>
-                  Siguiente
+                  <span className="hidden sm:inline">Siguiente</span>
+                  <span className="sm:hidden">Siguiente</span>
                   <ChevronRight className="w-4 h-4" />
                 </>
               )}
