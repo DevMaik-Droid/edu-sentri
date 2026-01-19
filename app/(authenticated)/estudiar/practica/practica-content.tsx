@@ -1121,8 +1121,8 @@ export default function PracticaAreaContent() {
   return (
     <ClientLayout>
       <TimeBackground>
-        <div className="min-h-[calc(100vh-4rem)] max-h-[calc(100vh-4rem)] flex flex-col">
-          <div className="container mx-auto px-4 py-2 sm:py-8 flex-1 flex flex-col">
+        <div className="h-[calc(100vh-4rem)] flex flex-col">
+          <div className="container mx-auto h-full px-4 py-2 sm:py-8 flex-1 flex flex-col">
             {/* PROGRESO */}
             <div
               className={`mb-4 sm:mb-6 shrink-0 backdrop-blur-xl ${getHeaderGradientClasses(
@@ -1159,7 +1159,7 @@ export default function PracticaAreaContent() {
             {/* PREGUNTA (SCROLL INTERNO) */}
             <div
               key={currentIndex}
-              className="flex-1 min-h-0 animate-in fade-in slide-in-from-right-4 duration-300"
+              className="flex-1 animate-in fade-in slide-in-from-right-4 duration-300 min-h-0 relative overflow-y-auto"
             >
               <QuestionCard
                 numeroActual={currentIndex + 1}
