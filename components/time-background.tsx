@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   getTimePeriod,
   getBackgroundClasses,
+  getTextColor,
   type TimePeriod,
 } from "@/lib/get-time-period";
 
@@ -32,15 +33,18 @@ export function TimeBackground({
   }, []);
 
   const backgroundClasses = getBackgroundClasses(period);
+  const textColor = getTextColor(period);
 
   return (
-    <div className={`min-h-screen relative overflow-hidden ${className}`}>
-      {/* Capa de gradiente animado */}
+    <div
+      className={`min-h-screen relative overflow-hidden ${className} ${textColor}`}
+    >
+      {/* Capa de gradiente estático (sin animación) */}
       <div
         className={`fixed inset-0 ${backgroundClasses} transition-all duration-1000 ease-in-out`}
         style={{
-          backgroundSize: "400% 400%",
-          animation: "gradient-shift 15s ease infinite",
+          // Eliminada la animación de movimiento para un look más tranquilo
+          backgroundSize: "cover",
         }}
       />
 
@@ -55,7 +59,7 @@ export function TimeBackground({
       {/* Contenido */}
       <div className="relative z-10">{children}</div>
 
-      {/* Estilos de animación del gradiente */}
+      {/* Eliminadas las keyframes de animación */}
       <style jsx>{`
         @keyframes gradient-shift {
           0% {

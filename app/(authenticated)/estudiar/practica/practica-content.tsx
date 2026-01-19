@@ -60,10 +60,10 @@ import { useChatVisibility } from "@/context/chat-visibility-context";
 import { TimeBackground } from "@/components/time-background";
 import {
   getTimePeriod,
-  getTimerColors,
   getProgressColors,
   getBorderColors,
   getPrimaryButtonColors,
+  getHeaderGradientClasses,
 } from "@/lib/get-time-period";
 
 const AREAS_CON_DISCIPLINAS: Record<string, string[]> = {
@@ -104,7 +104,7 @@ export default function PracticaAreaContent() {
     () => {
       const currentArea = searchParams.get("area") || "";
       return AREAS_CON_DISCIPLINAS[currentArea]?.[0] || "todas";
-    }
+    },
   );
   const [cargando, setCargando] = useState(false);
   const [cargandoTotal, setCargandoTotal] = useState(true);
@@ -170,13 +170,13 @@ export default function PracticaAreaContent() {
         const aScore = a.name.includes("Google")
           ? 2
           : a.name.includes("Microsoft")
-          ? 1
-          : 0;
+            ? 1
+            : 0;
         const bScore = b.name.includes("Google")
           ? 2
           : b.name.includes("Microsoft")
-          ? 1
-          : 0;
+            ? 1
+            : 0;
         return bScore - aScore;
       });
 
@@ -405,7 +405,7 @@ export default function PracticaAreaContent() {
     if (textosSeleccionados.length === 0) return;
 
     const primerTexto = textosDisponibles.find(
-      (t) => t.id === textosSeleccionados[0]
+      (t) => t.id === textosSeleccionados[0],
     );
     if (!primerTexto) return;
 
@@ -442,7 +442,7 @@ export default function PracticaAreaContent() {
         } else {
           // Cache expirado, recargar
           preguntasDelTexto = await obtenerPreguntasPorTextoLectura(
-            textoActual.id
+            textoActual.id,
           );
           localStorage.setItem(
             cacheKey,
@@ -450,13 +450,13 @@ export default function PracticaAreaContent() {
               preguntas: preguntasDelTexto,
               texto: textoActual,
               timestamp: Date.now(),
-            })
+            }),
           );
         }
       } else {
         // No hay cache, cargar y guardar
         preguntasDelTexto = await obtenerPreguntasPorTextoLectura(
-          textoActual.id
+          textoActual.id,
         );
         localStorage.setItem(
           cacheKey,
@@ -464,7 +464,7 @@ export default function PracticaAreaContent() {
             preguntas: preguntasDelTexto,
             texto: textoActual,
             timestamp: Date.now(),
-          })
+          }),
         );
       }
 
@@ -500,7 +500,7 @@ export default function PracticaAreaContent() {
           disciplinaSeleccionada === "todas"
             ? undefined
             : disciplinaSeleccionada,
-          false
+          false,
         );
       } else if (isRazonamientoLogico) {
         // Para razonamiento lógico, usar num_pregunta explícito
@@ -514,14 +514,14 @@ export default function PracticaAreaContent() {
           rangoInicio,
           rangoFin,
           disciplina,
-          true // usarNumPregunta
+          true, // usarNumPregunta
         );
       } else {
         // Comportamiento default (indices 0-based)
         const inicio = Math.max(1, rangoInicio);
         const fin = Math.min(
           rangoFin,
-          totalDisponible > 0 ? totalDisponible : 200
+          totalDisponible > 0 ? totalDisponible : 200,
         );
         const disciplina =
           disciplinaSeleccionada === "todas"
@@ -532,7 +532,7 @@ export default function PracticaAreaContent() {
           inicio - 1,
           fin - 1,
           disciplina,
-          false
+          false,
         );
       }
 
@@ -569,7 +569,7 @@ export default function PracticaAreaContent() {
       ) {
         const siguienteIndice = indiceTextoActual + 1;
         const siguienteTexto = textosDisponibles.find(
-          (t) => t.id === textosSeleccionados[siguienteIndice]
+          (t) => t.id === textosSeleccionados[siguienteIndice],
         );
 
         if (siguienteTexto) {
@@ -632,7 +632,7 @@ export default function PracticaAreaContent() {
         <TimeBackground>
           <div className="min-h-screen flex items-center justify-center px-4">
             <Card
-              className={`w-full max-w-3xl animate-in fade-in zoom-in duration-300 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 shadow-2xl border-2 ${borderColors}`}
+              className={`w-full max-w-3xl animate-in fade-in zoom-in duration-300 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 shadow-2xl border-2 text-slate-900 dark:text-slate-100 ${borderColors}`}
             >
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -710,7 +710,7 @@ export default function PracticaAreaContent() {
             <div className="container mx-auto px-4 py-8 max-w-4xl">
               {textosSeleccionados.length > 1 && (
                 <div className="mb-6">
-                  <div className="h-2.5 w-full bg-white/60 dark:bg-slate-800 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
+                  <div className="h-2.5 w-full bg-white/90 dark:bg-slate-800 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
                     <div
                       className={`h-full rounded-full transition-all duration-1000 ease-out ${progressColors}`}
                       style={{
@@ -732,7 +732,7 @@ export default function PracticaAreaContent() {
               )}
 
               {/* CARD PRINCIPAL */}
-              <Card className="flex flex-col h-[89vh] animate-in fade-in slide-in-from-bottom-4 duration-300 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-white/20 shadow-2xl">
+              <Card className="flex flex-col h-[89vh] animate-in fade-in slide-in-from-bottom-4 duration-300 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 border-white/20 shadow-2xl text-slate-900 dark:text-slate-100">
                 <CardHeader className="shrink-0">
                   <CardTitle className="flex items-center gap-2">
                     <BookOpen className="w-6 h-6 text-primary" />
@@ -1015,7 +1015,7 @@ export default function PracticaAreaContent() {
                             !isRazonamientoLogico
                               ? Math.min(
                                   rangoInicio + 199,
-                                  totalDisponible || 200
+                                  totalDisponible || 200,
                                 )
                               : undefined
                           }
@@ -1033,7 +1033,7 @@ export default function PracticaAreaContent() {
                             !isRazonamientoLogico && totalDisponible > 0
                               ? Math.min(
                                   rangoInicio + 199,
-                                  totalDisponible || 200
+                                  totalDisponible || 200,
                                 )
                               : rangoInicio + 199;
                           setRangoFin(Math.min(max, rangoFin + 1));
@@ -1120,161 +1120,170 @@ export default function PracticaAreaContent() {
 
   return (
     <ClientLayout>
-      <div className="bg-background h-[calc(100vh-4rem)]">
-        <div className="container mx-auto px-4 py-2 sm:py-8 h-full flex flex-col">
-          {/* PROGRESO */}
-          <div className="mb-4 sm:mb-6 shrink-0">
-            <div className="h-3 w-full bg-white/60 dark:bg-slate-800 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
-              <div
-                className={`h-full rounded-full transition-all duration-1000 ease-out ${progressColors}`}
-                style={{ width: `${progreso}%` }}
+      <TimeBackground className="min-h-[calc(100vh-10rem)]">
+        <div className="min-h-[calc(100vh-4rem)]  flex flex-col">
+          <div className="container mx-auto px-4 py-2 sm:py-8 flex-1 flex flex-col">
+            {/* PROGRESO */}
+            {/* PROGRESO */}
+            <div
+              className={`mb-4 sm:mb-6 shrink-0 backdrop-blur-xl ${getHeaderGradientClasses(
+                timePeriod,
+              )} rounded-lg p-4 shadow-lg border-0`}
+            >
+              <div className="shrink-0">
+                <div className="h-3 w-full bg-white dark:bg-slate-800 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
+                  <div
+                    className={`h-full rounded-full transition-all duration-1000 ease-out ${progressColors}`}
+                    style={{ width: `${progreso}%` }}
+                  />
+                </div>
+
+                <div className="flex justify-between mt-1 text-sm text-white font-bold items-center">
+                  <span>Pregunta {currentIndex + 1}</span>
+                  {isComprensionLectora && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowTextoDialog(true)}
+                      className="h-6 gap-1.5 text-xs font-medium text-white hover:text-white/80 hover:bg-white/20"
+                    >
+                      <Eye className="w-3 h-3" />
+                      Ver Texto
+                    </Button>
+                  )}
+
+                  <span>Total {preguntas.length}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* PREGUNTA (SCROLL INTERNO) */}
+            <div
+              key={currentIndex}
+              className="flex-1 min-h-0 animate-in fade-in slide-in-from-right-4 duration-300"
+            >
+              <QuestionCard
+                numeroActual={currentIndex + 1}
+                total={preguntas.length}
+                pregunta={preguntaActual}
+                respuestaSeleccionada={respuestas[currentIndex]}
+                onRespuesta={handleRespuesta}
+                mostrarCorrecta={!!respuestas[currentIndex]} // Feedback inmediato en práctica
               />
             </div>
 
-            <div className="flex justify-between mt-1 text-sm text-muted-foreground items-center">
-              <span>Pregunta {currentIndex + 1}</span>
-              {isComprensionLectora && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowTextoDialog(true)}
-                  className="h-6 gap-1.5 text-xs font-medium text-primary hover:text-primary/80"
-                >
-                  <Eye className="w-3 h-3" />
-                  Ver Texto
-                </Button>
-              )}
+            {/* BOTONES (SIEMPRE ABAJO) */}
+            <div className="grid grid-cols-3 gap-3 mt-4 shrink-0 max-w-[80%]">
+              <Button
+                variant="outline"
+                onClick={handleAnterior}
+                disabled={currentIndex === 0}
+                className={`cursor-pointer gap-2 backdrop-blur-sm bg-white h-12 transition-all duration-200 hover:scale-[1.01] hover:bg-slate-50 flex-1 shadow-md border-2 text-slate-900 ${borderColors}`}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Anterior</span>
+                <span className="sm:hidden">Atrás</span>
+              </Button>
 
-              <span>Total {preguntas.length}</span>
+              <Button
+                onClick={handleSiguiente}
+                disabled={!respuestas[currentIndex]}
+                className={`col-span-2 cursor-pointer gap-2 h-12 transition-all duration-200 hover:scale-[1.02] border-0 text-white ${primaryButtonColors}`}
+              >
+                {currentIndex === preguntas.length - 1 ? (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    {isComprensionLectora &&
+                    indiceTextoActual < textosSeleccionados.length - 1
+                      ? "Siguiente Texto"
+                      : "Finalizar Práctica"}
+                  </>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">Siguiente</span>
+                    <span className="sm:hidden">Siguiente</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* ESTADO */}
+            <div className="text-center text-sm text-muted-foreground mt-2">
+              {Object.keys(respuestas).length} de {preguntas.length} respondidas
             </div>
           </div>
 
-          {/* PREGUNTA (SCROLL INTERNO) */}
-          <div
-            key={currentIndex}
-            className="flex-1 min-h-0 animate-in fade-in slide-in-from-right-4 duration-300"
-          >
-            <QuestionCard
-              numeroActual={currentIndex + 1}
-              total={preguntas.length}
-              pregunta={preguntaActual}
-              respuestaSeleccionada={respuestas[currentIndex]}
-              onRespuesta={handleRespuesta}
-              mostrarCorrecta={!!respuestas[currentIndex]} // Feedback inmediato en práctica
-            />
-          </div>
-
-          {/* BOTONES (SIEMPRE ABAJO) */}
-          <div className="grid grid-cols-3 gap-3 mt-4 shrink-0 max-w-[80%]">
-            <Button
-              variant="outline"
-              onClick={handleAnterior}
-              disabled={currentIndex === 0}
-              className={`cursor-pointer gap-2 backdrop-blur-sm bg-white dark:bg-slate-800 h-12 transition-all duration-200 hover:scale-[1.01] flex-1 shadow-md border-2 ${borderColors}`}
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Anterior</span>
-              <span className="sm:hidden">Atrás</span>
-            </Button>
-
-            <Button
-              onClick={handleSiguiente}
-              disabled={!respuestas[currentIndex]}
-              className={`col-span-2 cursor-pointer gap-2 h-12 transition-all duration-200 hover:scale-[1.02] border-0 text-white ${primaryButtonColors}`}
-            >
-              {currentIndex === preguntas.length - 1 ? (
-                <>
-                  <CheckCircle className="w-4 h-4" />
-                  {isComprensionLectora &&
-                  indiceTextoActual < textosSeleccionados.length - 1
-                    ? "Siguiente Texto"
-                    : "Finalizar Práctica"}
-                </>
-              ) : (
-                <>
-                  <span className="hidden sm:inline">Siguiente</span>
-                  <span className="sm:hidden">Siguiente</span>
-                  <ChevronRight className="w-4 h-4" />
-                </>
-              )}
-            </Button>
-          </div>
-
-          {/* ESTADO */}
-          <div className="text-center text-sm text-muted-foreground mt-2">
-            {Object.keys(respuestas).length} de {preguntas.length} respondidas
-          </div>
+          {/* AlertDialog para mostrar texto de lectura */}
+          <AlertDialog open={showTextoDialog} onOpenChange={setShowTextoDialog}>
+            <AlertDialogContent className="max-h-[90vh] min-w-[60vw] max-w-[90vw] overflow-hidden flex flex-col">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-primary" />
+                  {textoActual?.titulo || "Texto de Lectura"}
+                </AlertDialogTitle>
+              </AlertDialogHeader>
+              <div className="flex-1 overflow-y-auto pr-2">
+                {textoActual && (
+                  <div className="prose prose-base dark:prose-invert max-w-none">
+                    <ReactMarkdown
+                      components={{
+                        h2: ({ ...props }) => (
+                          <h2
+                            className="text-2xl font-bold mt-6 mb-4 text-foreground"
+                            {...props}
+                          />
+                        ),
+                        h3: ({ ...props }) => (
+                          <h3
+                            className="text-xl font-semibold mt-5 mb-3 text-foreground"
+                            {...props}
+                          />
+                        ),
+                        p: ({ ...props }) => (
+                          <p
+                            className="mb-4 leading-7 text-foreground/90"
+                            {...props}
+                          />
+                        ),
+                        ul: ({ ...props }) => (
+                          <ul
+                            className="my-4 ml-6 list-disc space-y-2"
+                            {...props}
+                          />
+                        ),
+                        ol: ({ ...props }) => (
+                          <ol
+                            className="my-4 ml-6 list-decimal space-y-2"
+                            {...props}
+                          />
+                        ),
+                        li: ({ ...props }) => (
+                          <li className="leading-7" {...props} />
+                        ),
+                        strong: ({ ...props }) => (
+                          <strong
+                            className="font-semibold text-foreground"
+                            {...props}
+                          />
+                        ),
+                        em: ({ ...props }) => (
+                          <em className="italic" {...props} />
+                        ),
+                      }}
+                    >
+                      {textoActual.contenido}
+                    </ReactMarkdown>
+                  </div>
+                )}
+              </div>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cerrar</AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
-
-        {/* AlertDialog para mostrar texto de lectura */}
-        <AlertDialog open={showTextoDialog} onOpenChange={setShowTextoDialog}>
-          <AlertDialogContent className="max-h-[90vh] min-w-[60vw] max-w-[90vw] overflow-hidden flex flex-col">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-primary" />
-                {textoActual?.titulo || "Texto de Lectura"}
-              </AlertDialogTitle>
-            </AlertDialogHeader>
-            <div className="flex-1 overflow-y-auto pr-2">
-              {textoActual && (
-                <div className="prose prose-base dark:prose-invert max-w-none">
-                  <ReactMarkdown
-                    components={{
-                      h2: ({ ...props }) => (
-                        <h2
-                          className="text-2xl font-bold mt-6 mb-4 text-foreground"
-                          {...props}
-                        />
-                      ),
-                      h3: ({ ...props }) => (
-                        <h3
-                          className="text-xl font-semibold mt-5 mb-3 text-foreground"
-                          {...props}
-                        />
-                      ),
-                      p: ({ ...props }) => (
-                        <p
-                          className="mb-4 leading-7 text-foreground/90"
-                          {...props}
-                        />
-                      ),
-                      ul: ({ ...props }) => (
-                        <ul
-                          className="my-4 ml-6 list-disc space-y-2"
-                          {...props}
-                        />
-                      ),
-                      ol: ({ ...props }) => (
-                        <ol
-                          className="my-4 ml-6 list-decimal space-y-2"
-                          {...props}
-                        />
-                      ),
-                      li: ({ ...props }) => (
-                        <li className="leading-7" {...props} />
-                      ),
-                      strong: ({ ...props }) => (
-                        <strong
-                          className="font-semibold text-foreground"
-                          {...props}
-                        />
-                      ),
-                      em: ({ ...props }) => (
-                        <em className="italic" {...props} />
-                      ),
-                    }}
-                  >
-                    {textoActual.contenido}
-                  </ReactMarkdown>
-                </div>
-              )}
-            </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cerrar</AlertDialogCancel>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+      </TimeBackground>
     </ClientLayout>
   );
 }

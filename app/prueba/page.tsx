@@ -40,6 +40,7 @@ import {
   getProgressColors,
   getBorderColors,
   getPrimaryButtonColors,
+  getHeaderGradientClasses,
 } from "@/lib/get-time-period";
 
 export default function PruebaPage() {
@@ -73,7 +74,7 @@ export default function PruebaPage() {
   // Timer state (2 hours = 7200 seconds)
   const [timeLeft, setTimeLeft] = useState(7200);
   const [tiempoSeleccionado, setTiempoSeleccionado] = useState<number | null>(
-    null
+    null,
   );
   const [showTimeSelector, setShowTimeSelector] = useState(false);
 
@@ -90,7 +91,7 @@ export default function PruebaPage() {
       newPreguntas: PreguntaUI[],
       newRespuestas: RespuestaUsuario[],
       newIndex: number,
-      newTimeLeft: number
+      newTimeLeft: number,
     ) => {
       saveActiveSession({
         tipo,
@@ -102,7 +103,7 @@ export default function PruebaPage() {
         timestamp: Date.now(),
       });
     },
-    [tipo, area]
+    [tipo, area],
   );
 
   // Save timer every 10 seconds to avoid excessive writing, but save properly on actions
@@ -238,13 +239,13 @@ export default function PruebaPage() {
                 // CASO ESPECIAL: Razonamiento Lógico usa 30 preguntas aleatorias
                 preguntasCargadas = await obtenerPreguntasAleatoriasPorArea(
                   area,
-                  30
+                  30,
                 );
               } else if (area === "Conocimientos Generales") {
                 // CASO ESPECIAL: Conocimientos Generales usa 20 preguntas aleatorias
                 preguntasCargadas = await obtenerPreguntasAleatoriasPorArea(
                   area,
-                  20
+                  20,
                 );
               } else {
                 preguntasCargadas = await obtenerPreguntasPorArea(area, 0, 99);
@@ -263,7 +264,7 @@ export default function PruebaPage() {
               if (preguntasCargadas.length > 0) {
                 localStorage.setItem(
                   "prueba_demo",
-                  JSON.stringify(preguntasCargadas)
+                  JSON.stringify(preguntasCargadas),
                 );
               }
             }
@@ -313,7 +314,7 @@ export default function PruebaPage() {
         // 1. Check if text is in textosSeleccionados (optimization)
         if (isComprensionLectora && textosSeleccionados.length > 0) {
           const textoPreload = textosSeleccionados.find(
-            (t) => t.id === currentPregunta.texto_lectura_id
+            (t) => t.id === currentPregunta.texto_lectura_id,
           );
           if (textoPreload) {
             setTextoActual(textoPreload);
@@ -355,7 +356,7 @@ export default function PruebaPage() {
         }
 
         const texto = await obtenerTextoLecturaPorId(
-          currentPregunta.texto_lectura_id!
+          currentPregunta.texto_lectura_id!,
         );
         if (texto) {
           setTextoActual(texto);
@@ -389,7 +390,7 @@ export default function PruebaPage() {
   const handleSeleccionarRespuesta = (respuesta: string) => {
     const preguntaId = preguntas[preguntaActual].id;
     const respuestasActualizadas = respuestas.filter(
-      (r) => r.preguntaId !== preguntaId
+      (r) => r.preguntaId !== preguntaId,
     );
     respuestasActualizadas.push({
       preguntaId,
@@ -543,7 +544,7 @@ export default function PruebaPage() {
   }
 
   const respuestaActual = respuestas.find(
-    (r) => r.preguntaId === preguntas[preguntaActual].id
+    (r) => r.preguntaId === preguntas[preguntaActual].id,
   )?.respuestaSeleccionada;
   const mostrarRespuesta = false;
 
@@ -553,7 +554,9 @@ export default function PruebaPage() {
         <div className="container h-screen mx-auto px-4 py-4 sm:py-8 flex flex-col">
           {/* 🔝 PROGRESO (FIJO ARRIBA) */}
           <div
-            className={`sm:mb-6 animate-in fade-in slide-in-from-top-1 duration-500 shrink-0 backdrop-blur-xl bg-white/60 dark:bg-slate-900/60 rounded-lg p-4 shadow-lg border-2 ${borderColors}`}
+            className={`sm:mb-6 animate-in fade-in slide-in-from-top-1 duration-500 shrink-0 backdrop-blur-xl ${getHeaderGradientClasses(
+              getTimePeriod(),
+            )} rounded-lg p-4 shadow-lg border-0`}
           >
             <div className="flex flex-col">
               <div
@@ -565,7 +568,7 @@ export default function PruebaPage() {
               </div>
               {/* PROGRESO */}
               <div className="shrink-0">
-                <div className="h-3 w-full bg-white/60 dark:bg-slate-800 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
+                <div className="h-3 w-full bg-white dark:bg-slate-800 rounded-full overflow-hidden border border-black/5 dark:border-white/5">
                   <div
                     className={`h-full rounded-full transition-all duration-1000 ease-out ${progressColors}`}
                     style={{
@@ -574,7 +577,7 @@ export default function PruebaPage() {
                   />
                 </div>
 
-                <div className="flex justify-between mt-1 text-sm text-muted-foreground items-center">
+                <div className="flex justify-between mt-1 text-sm text-white font-bold items-center">
                   <span>Pregunta {currentIndex + 1}</span>
                   {isComprensionLectora && (
                     <Button
@@ -615,7 +618,7 @@ export default function PruebaPage() {
           {/* 🧠 CONTENEDOR DE LA PREGUNTA (SCROLL INTERNO) */}
           <div
             key={preguntaActual}
-            className="flex-1 animate-in fade-in slide-in-from-right-4 duration-300 min-h-0 relative overflow-y-auto"
+            className="mt-2 flex-1 animate-in fade-in slide-in-from-right-4 duration-300 min-h-0 relative overflow-y-auto"
           >
             <QuestionCard
               pregunta={preguntas[preguntaActual]}
@@ -634,7 +637,7 @@ export default function PruebaPage() {
               size="lg"
               onClick={handleAnterior}
               disabled={preguntaActual === 0}
-              className={`cursor-pointer gap-2 backdrop-blur-sm bg-white dark:bg-slate-800 h-12 transition-all duration-200 hover:scale-[1.01] flex-1 shadow-md border-2 ${borderColors}`}
+              className={`cursor-pointer  gap-2 backdrop-blur-sm bg-white h-12 transition-all duration-200 hover:scale-[1.01] hover:bg-slate-50 flex-1 shadow-md border text-slate-900 ${borderColors}`}
             >
               <ChevronLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Anterior</span>
@@ -645,7 +648,7 @@ export default function PruebaPage() {
               variant="outline"
               size="lg"
               onClick={() => setShowNavigatorDialog(true)}
-              className={`gap-2 backdrop-blur-sm bg-white/70 dark:bg-slate-800/70 border-primary/50 h-12 transition-all duration-200 hover:scale-[1.01] text-primary hover:bg-primary/10 cursor-pointer max-w-14 shadow-md`}
+              className={`gap-2 backdrop-blur-sm bg-white dark:bg-slate-800 border-primary/50 h-12 transition-all duration-200 hover:scale-[1.01] text-primary hover:bg-white cursor-pointer max-w-14 shadow-md`}
             >
               <Grid3x3 className="w-4 h-4" />
             </Button>
@@ -778,7 +781,7 @@ export default function PruebaPage() {
               <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2 m-2">
                 {preguntas.map((pregunta, index) => {
                   const isAnswered = respuestas.some(
-                    (r) => r.preguntaId === pregunta.id
+                    (r) => r.preguntaId === pregunta.id,
                   );
                   const isCurrent = index === preguntaActual;
 
@@ -790,8 +793,8 @@ export default function PruebaPage() {
                         isCurrent
                           ? "border-primary bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
                           : isAnswered
-                          ? "border-green-500 bg-green-500 text-white hover:bg-green-600"
-                          : "border-orange-400 bg-orange-50 text-orange-700 hover:bg-orange-100"
+                            ? "border-green-500 bg-green-500 text-white hover:bg-green-600"
+                            : "border-orange-400 bg-orange-50 text-orange-700 hover:bg-orange-100"
                       } cursor-pointer`}
                     >
                       {index + 1}

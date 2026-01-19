@@ -74,7 +74,7 @@ export default function DashboardPage() {
             "bg-gradient-to-br from-blue-500 to-cyan-400 text-white shadow-lg shadow-blue-500/20",
           subtextClassName: "text-blue-50",
         });
-      } else if (hora >= 12 && hora < 19) {
+      } else if (hora >= 12 && hora < 18) {
         setTimeState({
           greeting: "Buenas tardes",
           className:

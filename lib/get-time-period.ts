@@ -49,9 +49,9 @@ export function getTimeGradients(period: TimePeriod): TimeGradients {
     case "night":
       // 🌙 Azul oscuro profundo → Azul grisáceo
       return {
-        from: "from-slate-900/70", // Similar a #0F172A
-        via: "via-slate-800/65", // Similar a #1E293B
-        to: "to-slate-900/70", // Profundidad
+        from: "from-slate-800", // Similar a #0F172A
+        via: "via-slate-900", // Similar a #1E293B
+        to: "to-slate-800", // Profundidad
       };
   }
 }
@@ -95,7 +95,7 @@ export function getTimerColors(period?: TimePeriod): string {
     case "afternoon":
       return "text-orange-600 dark:text-orange-400";
     case "night":
-      return "text-blue-400 dark:text-blue-300";
+      return "text-white dark:text-white";
   }
 }
 
@@ -132,6 +132,23 @@ export function getPrimaryButtonColors(period?: TimePeriod): string {
 }
 
 /**
+ * Retorna clases de gradiente idénticas al botón primario (solo background y texto)
+ * Usado para headers que deben coincidir con el botón "Siguiente"
+ */
+export function getHeaderGradientClasses(period?: TimePeriod): string {
+  const currentPeriod = period || getTimePeriod();
+
+  switch (currentPeriod) {
+    case "morning":
+      return "bg-gradient-to-r from-sky-500 to-blue-500 text-white";
+    case "afternoon":
+      return "bg-gradient-to-r from-orange-500 to-amber-500 text-white";
+    case "night":
+      return "bg-gradient-to-r from-blue-700 to-indigo-800";
+  }
+}
+
+/**
  * Retorna clases para botones de acento según el período
  */
 export function getAccentColors(period?: TimePeriod): string {
@@ -145,4 +162,18 @@ export function getAccentColors(period?: TimePeriod): string {
     case "night":
       return "text-blue-400 border-blue-500 hover:bg-blue-950/30 dark:text-blue-300 dark:border-blue-400 dark:hover:bg-blue-900/30";
   }
+}
+
+/**
+ * Retorna el color de texto base según el período para garantizar contraste
+ * Mañana/Tarde (Fondos claros) -> Texto oscuro
+ * Noche (Fondo oscuro) -> Texto blanco
+ */
+export function getTextColor(period?: TimePeriod): string {
+  const currentPeriod = period || getTimePeriod();
+
+  if (currentPeriod === "night") {
+    return "text-white";
+  }
+  return "text-slate-900 dark:text-white";
 }

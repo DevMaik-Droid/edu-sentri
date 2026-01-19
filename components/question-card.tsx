@@ -110,9 +110,9 @@ export function QuestionCard({
 
   return (
     <Card
-      className={`flex gap-2 flex-col h-full border-2 p-0 pb-2 transition-all duration-300 backdrop-blur-xl bg-white/70 dark:bg-slate-900/70 shadow-xl border-white/20 ${
+      className={`flex gap-2 flex-col h-full border-0 p-0 pb-2 transition-all duration-300 backdrop-blur-xl bg-white dark:bg-slate-900/90 shadow-xl border-white/20 text-slate-900 dark:text-slate-100 ${
         mostrar && esCorrecta
-          ? "border-green-500 bg-green-50/80 dark:bg-green-950/40"
+          ? "border-green-500 bg-green-50/90 dark:bg-green-950/40"
           : ""
       }`}
     >
@@ -211,8 +211,8 @@ export function QuestionCard({
                     seleccion_correcta
                       ? "border-green-500 bg-green-50/80 dark:bg-green-950/40 shadow-lg shadow-green-500/20"
                       : seleccion_incorrecta
-                      ? "border-red-500 bg-red-50/80 dark:bg-red-950/40 shadow-lg shadow-red-500/20"
-                      : "border-slate-300 dark:border-slate-700/50 bg-white/40 dark:bg-slate-800/40"
+                        ? "border-red-500 bg-red-50/80 dark:bg-red-950/40 shadow-lg shadow-red-500/20"
+                        : "border-slate-300 dark:border-slate-700/50 bg-white/40 dark:bg-slate-800/40"
                   }`}
                 >
                   {/* Indicador de estado */}
@@ -221,8 +221,8 @@ export function QuestionCard({
                       seleccion_correcta
                         ? "bg-green-500"
                         : seleccion_incorrecta
-                        ? "bg-red-500"
-                        : "bg-slate-200 dark:bg-slate-700"
+                          ? "bg-red-500"
+                          : "bg-slate-200 dark:bg-slate-700"
                     }`}
                   >
                     {seleccion_correcta && (
@@ -238,8 +238,8 @@ export function QuestionCard({
                       seleccion_correcta
                         ? "font-semibold text-green-700 dark:text-green-400"
                         : seleccion_incorrecta
-                        ? "font-semibold text-red-700 dark:text-red-400"
-                        : ""
+                          ? "font-semibold text-red-700 dark:text-red-400"
+                          : ""
                     }`}
                   >
                     {opcion.texto}
