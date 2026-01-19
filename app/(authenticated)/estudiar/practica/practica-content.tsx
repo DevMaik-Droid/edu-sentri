@@ -732,7 +732,7 @@ export default function PracticaAreaContent() {
               )}
 
               {/* CARD PRINCIPAL */}
-              <Card className="flex flex-col h-[89vh] animate-in fade-in slide-in-from-bottom-4 duration-300 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 border-white/20 shadow-2xl text-slate-900 dark:text-slate-100">
+              <Card className="flex flex-col h-[85vh] animate-in fade-in slide-in-from-bottom-4 duration-300 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 border-white/20 shadow-2xl text-slate-900 dark:text-slate-100">
                 <CardHeader className="shrink-0">
                   <CardTitle className="flex items-center gap-2">
                     <BookOpen className="w-6 h-6 text-primary" />
@@ -826,20 +826,24 @@ export default function PracticaAreaContent() {
               <div className="flex justify-center gap-2 mt-4">
                 <Button
                   variant="outline"
-                  onClick={() => setFase("seleccion-textos")}
+                  onClick={() => {
+                    handleStop();
+                    setFase("seleccion-textos");
+                  }}
                   className={`text-primary cursor-pointer gap-2 backdrop-blur-sm bg-white dark:bg-slate-800 h-10 transition-all duration-200 hover:scale-[1.01] shadow-md border-2 ${borderColors}`}
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  Volver a Selección
+                  Volver
                 </Button>
 
                 <Button
+                  
                   onClick={() => {
                     handleComenzarPreguntas();
                     handleStop();
                   }}
                   disabled={cargando}
-                  className={`cursor-pointer gap-2 border-0 text-white transition-all duration-200 hover:scale-[1.02] shadow-md ${primaryButtonColors}`}
+                  className={`cursor-pointer h-10 gap-2 border-0 text-white transition-all duration-200 hover:scale-[1.02] shadow-md ${primaryButtonColors}`}
                 >
                   {cargando ? (
                     "Cargando..."
