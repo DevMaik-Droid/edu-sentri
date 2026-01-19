@@ -791,7 +791,7 @@ export default function PracticaAreaContent() {
                 </CardContent>
 
                 {/* FOOTER FIJO */}
-                <CardFooter className="shrink-0 border-t flex justify-center gap-1 py-1 h-10 backdrop-blur-sm bg-white/50 dark:bg-slate-800/50">
+                <CardFooter className="shrink-0  flex justify-center gap-1 py-1 h-10 backdrop-blur-sm bg-white/50 dark:bg-slate-800/50">
                   {!isSpeaking && !isPaused ? (
                     <Button variant="outline" onClick={handleSpeak}>
                       <Volume2 className="w-4 h-4 mr-2" />
@@ -827,7 +827,7 @@ export default function PracticaAreaContent() {
                 <Button
                   variant="outline"
                   onClick={() => setFase("seleccion-textos")}
-                  className={`cursor-pointer gap-2 backdrop-blur-sm bg-white dark:bg-slate-800 h-10 transition-all duration-200 hover:scale-[1.01] shadow-md border-2 ${borderColors}`}
+                  className={`text-primary cursor-pointer gap-2 backdrop-blur-sm bg-white dark:bg-slate-800 h-10 transition-all duration-200 hover:scale-[1.01] shadow-md border-2 ${borderColors}`}
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Volver a Selección
