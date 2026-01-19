@@ -37,7 +37,7 @@ export function TimeBackground({
 
   return (
     <div
-      className={`min-h-screen relative overflow-hidden ${className} ${textColor}`}
+      className={`relative overflow-hidden ${className} ${textColor}`}
     >
       {/* Capa de gradiente estático (sin animación) */}
       <div

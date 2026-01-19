@@ -74,7 +74,7 @@ export default function ClientLayout({
     <SidebarProvider>
       <AppSidebar onLogout={handleLogout} />
       <SidebarInset>
-        <header className="sticky top-0 z-50 flex h-14 sm:h-16 shrink-0 items-center gap-2 border-b px-3 sm:px-4 bg-white/80 backdrop-blur supports-backdrop-filter:bg-white/80">
+        <header className="sticky top-0 z-50 flex h-14 sm:h-16 shrink-0 items-center gap-2 border-b px-3 sm:px-4 bg-white/90 backdrop-blur">
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-6" />
           <div className="flex items-center gap-2 flex-1">

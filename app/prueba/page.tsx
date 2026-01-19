@@ -584,7 +584,7 @@ export default function PruebaPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowTextoDialog(true)}
-                      className="h-6 text-purple-600
+                      className="h-6 text-purple-600 bg-white
                      border border-purple-600 hover:bg-purple-200/70 hover:text-purple-600
                       hover:border-purple-600 transition-colors gap-1.5 text-xs font-medium backdrop-blur-sm"
                     >

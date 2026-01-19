@@ -1120,10 +1120,9 @@ export default function PracticaAreaContent() {
 
   return (
     <ClientLayout>
-      <TimeBackground className="min-h-[calc(100vh-10rem)]">
-        <div className="min-h-[calc(100vh-4rem)]  flex flex-col">
+      <TimeBackground>
+        <div className="min-h-[calc(100vh-4rem)] max-h-[calc(100vh-4rem)] flex flex-col">
           <div className="container mx-auto px-4 py-2 sm:py-8 flex-1 flex flex-col">
-            {/* PROGRESO */}
             {/* PROGRESO */}
             <div
               className={`mb-4 sm:mb-6 shrink-0 backdrop-blur-xl ${getHeaderGradientClasses(
