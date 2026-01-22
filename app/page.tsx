@@ -86,7 +86,7 @@ export default async function HomePage() {
             </Button>
           </Link>
 
-          {/* PREMIUM */}
+          {/* PREMIUM
           <Link href="https://intentos.sentri.lat">
             <Button
               variant="outline"
@@ -102,7 +102,7 @@ export default async function HomePage() {
               Codigo (Gratis)
               <ArrowRight className="w-4 h-4" />
             </Button>
-          </Link>
+          </Link> */}
 
           {/* INSTALAR APP */}
           <InstallPrompt />

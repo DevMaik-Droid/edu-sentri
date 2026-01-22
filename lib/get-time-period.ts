@@ -91,9 +91,9 @@ export function getTimerColors(period?: TimePeriod): string {
 
   switch (currentPeriod) {
     case "morning":
-      return "text-sky-600 dark:text-sky-400";
+      return "text-white dark:text-white";
     case "afternoon":
-      return "text-orange-600 dark:text-orange-400";
+      return "text-white dark:text-white";
     case "night":
       return "text-white dark:text-white";
   }
